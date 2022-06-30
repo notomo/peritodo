@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "cliffy/command": "https://deno.land/x/cliffy@v0.24.2/command/mod.ts",
+    "cliffy/table": "https://deno.land/x/cliffy@v0.24.2/table/mod.ts",
+    "sqlite": "https://deno.land/x/sqlite@v3.4.0/mod.ts",
+    "xdg": "https://deno.land/x/xdg@v9.4.0/src/mod.deno.ts",
+    "path": "https://deno.land/std@0.145.0/path/mod.ts",
+    "fs": "https://deno.land/std@0.145.0/fs/mod.ts",
+    "datetime": "https://deno.land/std@0.145.0/datetime/mod.ts",
+    "streams/conversion": "https://deno.land/std@0.145.0/streams/conversion.ts"
+  }
+}
