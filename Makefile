@@ -23,3 +23,6 @@ check:
 
 fmt:
 	deno fmt ${IGNORE_FORMAT}
+
+clean:
+	deno run ${DENO_ARGS} data clear

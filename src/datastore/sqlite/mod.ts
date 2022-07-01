@@ -6,8 +6,12 @@ import sql from "./gen_sql.json" assert { type: "json" };
 
 type Teardown = () => void;
 
+function getDataDir(): string {
+  return join(xdg.data(), "peritodo");
+}
+
 export async function setupDatastore(): Promise<[DB, Teardown]> {
-  const dataDir = join(xdg.data(), "peritodo");
+  const dataDir = getDataDir();
   await ensureDir(dataDir);
 
   const dataPath = join(dataDir, "data.db");
@@ -21,4 +25,9 @@ export async function setupDatastore(): Promise<[DB, Teardown]> {
       db.close();
     },
   ];
+}
+
+export async function clearDatastore(): Promise<void> {
+  const dataDir = getDataDir();
+  await Deno.remove(dataDir, { recursive: true });
 }

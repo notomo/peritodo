@@ -1,6 +1,6 @@
 import { Command } from "cliffy/command";
 import { addTask, listTasks, newFetchTask, newPersistTask } from "./app/mod.ts";
-import { setupDatastore } from "./datastore/sqlite/mod.ts";
+import { clearDatastore, setupDatastore } from "./datastore/sqlite/mod.ts";
 import { writeAll } from "streams/conversion";
 
 async function main() {
@@ -39,6 +39,12 @@ async function main() {
             teardown();
           }
         }),
+    )
+    .command(
+      "data",
+      new Command().command("clear").action(async () => {
+        await clearDatastore();
+      }),
     )
     .parse(Deno.args);
 }
