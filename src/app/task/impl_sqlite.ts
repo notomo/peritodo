@@ -1,6 +1,7 @@
 import { DB } from "sqlite";
 import { FetchTasks, PersistTask, Task } from "./type.ts";
 import { format, parse } from "datetime";
+import { ensureNumber, ensureString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 
@@ -38,10 +39,10 @@ FROM periodic_task
 `)
     ) {
       tasks.push({
-        id: id as number,
-        name: name as string,
-        startAt: parse(startAt as string, timeFormat),
-        intervalDay: intervalDay as number,
+        id: ensureNumber(id),
+        name: ensureString(name),
+        startAt: parse(ensureString(startAt), timeFormat),
+        intervalDay: ensureNumber(intervalDay),
       });
     }
     return Promise.resolve(tasks);
