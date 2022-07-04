@@ -1,7 +1,7 @@
 import { Command } from "cliffy/command";
 import { addTask, listTasks, newFetchTask, newPersistTask } from "./app/mod.ts";
 import { clearDatastore, setupDatastore } from "./datastore/sqlite/mod.ts";
-import { writeAll } from "streams/conversion";
+import { newTextWriter } from "./lib/writer.ts";
 
 async function main() {
   await new Command()
@@ -29,10 +29,7 @@ async function main() {
           const [datastore, teardown] = await setupDatastore();
           try {
             const fetchTask = newFetchTask(datastore);
-            const write = (output: string): Promise<void> => {
-              const text = new TextEncoder().encode(output);
-              return writeAll(Deno.stdout, text);
-            };
+            const write = newTextWriter(Deno.stdout);
             const now = new Date();
             await listTasks(fetchTask, write, now);
           } finally {
