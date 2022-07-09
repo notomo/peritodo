@@ -1,7 +1,6 @@
 import { Command } from "cliffy/command";
-import { addTask, listTasks, newFetchTask, newPersistTask } from "./app/mod.ts";
-import { clearDatastore, setupDatastore } from "./datastore/sqlite/mod.ts";
-import { newTextWriter } from "./lib/writer.ts";
+import * as taskActions from "./app/task/mod.ts";
+import * as dataActions from "./app/data/mod.ts";
 
 async function main() {
   await new Command()
@@ -15,33 +14,15 @@ async function main() {
         .option("--interval-day=<intervalDay:number>", "interval day", {
           required: true,
         })
-        .action(async (options) => {
-          const [datastore, teardown] = await setupDatastore();
-          try {
-            const persistTask = newPersistTask(datastore);
-            await addTask(persistTask, options["name"], options["intervalDay"]);
-          } finally {
-            teardown();
-          }
-        })
+        .action(taskActions.add)
         .command("list")
-        .action(async () => {
-          const [datastore, teardown] = await setupDatastore();
-          try {
-            const fetchTask = newFetchTask(datastore);
-            const write = newTextWriter(Deno.stdout);
-            const now = new Date();
-            await listTasks(fetchTask, write, now);
-          } finally {
-            teardown();
-          }
-        }),
+        .action(taskActions.list),
     )
     .command(
       "data",
-      new Command().command("clear").action(async () => {
-        await clearDatastore();
-      }),
+      new Command()
+        .command("clear")
+        .action(dataActions.clear),
     )
     .parse(Deno.args);
 }
