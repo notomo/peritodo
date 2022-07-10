@@ -16,6 +16,12 @@ export function addTask(
 }
 
 const timeFormat = "yyyy-MM-dd";
+const timeColumn = (at: Date | null) => {
+  if (at === null) {
+    return "";
+  }
+  return format(at, timeFormat);
+};
 
 export async function listTasks(
   fetcher: FetchTasks,
@@ -29,6 +35,7 @@ export async function listTasks(
     "Next at",
     "Start at",
     "Interval days",
+    "Done at",
   ]).border(
     true,
   );
@@ -37,9 +44,10 @@ export async function listTasks(
     table.push([
       task.id,
       task.name,
-      format(nextAt, timeFormat),
-      format(task.startAt, timeFormat),
+      timeColumn(nextAt),
+      timeColumn(task.startAt),
       task.intervalDay,
+      timeColumn(task.doneAt),
     ]);
   }
   const output = table.toString();

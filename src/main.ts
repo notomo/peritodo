@@ -17,6 +17,9 @@ async function main() {
         .action(taskActions.add)
         .command("list")
         .action(taskActions.list)
+        .command("done")
+        .arguments("<id:number>")
+        .action(taskActions.done)
         .command("remove")
         .arguments("<id:number>")
         .action(taskActions.remove),

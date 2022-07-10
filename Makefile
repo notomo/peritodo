@@ -9,8 +9,11 @@ build:
 	deno run --allow-read=${INPUT_PATH} --allow-write=${OUTPUT_PATH} ./script/build.ts ${INPUT_PATH} ${OUTPUT_PATH}
 
 start: build
-	deno run ${DENO_ARGS} task add --name=example --interval-day=15
 	deno run ${DENO_ARGS} task list
+
+ARGS:=add --name=example --interval-day=15
+run: build
+	deno run ${DENO_ARGS} task ${ARGS}
 
 install: build
 	deno install --force --name ${CMD_NAME} ${DENO_ARGS}

@@ -17,7 +17,7 @@ export async function setupDatastore(): Promise<[DB, Teardown]> {
   const dataPath = join(dataDir, "data.db");
   const db = new DB(dataPath);
 
-  db.query(sql.createTable);
+  db.execute(sql.createTable);
 
   return [
     db,
