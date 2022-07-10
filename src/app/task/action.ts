@@ -24,6 +24,7 @@ export async function listTasks(
 ): Promise<void> {
   const tasks = await fetcher();
   const table = new Table().header([
+    "Id",
     "Name",
     "Next at",
     "Start at",
@@ -34,6 +35,7 @@ export async function listTasks(
   for (const task of tasks) {
     const nextAt = nextDate(task, now);
     table.push([
+      task.id,
       task.name,
       format(nextAt, timeFormat),
       format(task.startAt, timeFormat),
