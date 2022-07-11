@@ -1,4 +1,4 @@
-import { nextDate, Task } from "./type.ts";
+import * as typ from "./type.ts";
 import { Table } from "cliffy/table";
 import { format } from "datetime";
 
@@ -11,7 +11,7 @@ const timeColumn = (at: Date | null) => {
 };
 
 export async function listView(
-  tasks: Task[],
+  tasks: typ.Task[],
   write: (output: string) => Promise<void>,
   now: Date,
 ): Promise<void> {
@@ -26,14 +26,14 @@ export async function listView(
     true,
   );
   for (const task of tasks) {
-    const nextAt = nextDate(task, now);
+    const nextAt = typ.nextDate(task, now);
     table.push([
       task.id,
       task.name,
       timeColumn(nextAt),
       timeColumn(task.startAt),
       task.intervalDay,
-      timeColumn(task.doneAt),
+      timeColumn(task.recentDoneAt),
     ]);
   }
   const output = table.toString();

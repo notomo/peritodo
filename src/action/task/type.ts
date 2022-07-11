@@ -6,11 +6,13 @@ export type Task = {
   name: string;
   startAt: Date;
   intervalDay: number;
-  doneAt: Date | null;
+  recentDoneAt: Date | null;
 };
 
+export type TaskId = Task["id"];
+
 export function nextDate(task: Task, now: Date): Date {
-  const diff = difference(task.startAt, task.doneAt || now, {
+  const diff = difference(task.startAt, task.recentDoneAt || now, {
     units: ["days"],
   });
   const elapsed = ensureNumber(diff.days);
@@ -20,10 +22,11 @@ export function nextDate(task: Task, now: Date): Date {
   return date;
 }
 
-export type PersistTask = (task: Omit<Task, "id" | "doneAt">) => Promise<void>;
+export type PersisTaskParam = Omit<Task, "id" | "recentDoneAt">;
+export type PersistTask = (task: PersisTaskParam) => Promise<void>;
 
-export type RemoveTask = (task: Task["id"]) => Promise<void>;
+export type RemoveTask = (task: TaskId) => Promise<void>;
 
-export type DoneTask = (task: Task["id"], now: Date) => Promise<void>;
+export type DoneTask = (task: TaskId, now: Date) => Promise<void>;
 
 export type FetchTasks = () => Promise<Task[]>;

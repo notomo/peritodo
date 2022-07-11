@@ -1,5 +1,5 @@
 import { DB } from "sqlite";
-import { DoneTask, FetchTasks, PersistTask, RemoveTask, Task } from "./type.ts";
+import * as typ from "./type.ts";
 import { format, parse } from "datetime";
 import { ensureNumber, ensureString, isString } from "unknownutil";
 
@@ -10,8 +10,8 @@ const tables = {
   done_task: "done_task",
 };
 
-export function newPersistTask(db: DB): PersistTask {
-  return (task: Omit<Task, "id" | "doneAt">): Promise<void> => {
+export function newPersistTask(db: DB): typ.PersistTask {
+  return (task: typ.PersisTaskParam): Promise<void> => {
     db.query(
       `
 INSERT INTO ${tables.periodic_task} (
@@ -30,7 +30,7 @@ INSERT INTO ${tables.periodic_task} (
   };
 }
 
-export function newDoneTask(db: DB): DoneTask {
+export function newDoneTask(db: DB): typ.DoneTask {
   return (id: number, now: Date): Promise<void> => {
     db.query(
       `
@@ -48,7 +48,7 @@ INSERT INTO ${tables.done_task} (
   };
 }
 
-export function newRemoveTask(db: DB): RemoveTask {
+export function newRemoveTask(db: DB): typ.RemoveTask {
   return (id: number): Promise<void> => {
     db.query(
       `
@@ -62,8 +62,8 @@ DELETE FROM ${tables.periodic_task} WHERE id = ?
   };
 }
 
-export function newFetchTask(db: DB): FetchTasks {
-  return (): Promise<Task[]> => {
+export function newFetchTask(db: DB): typ.FetchTasks {
+  return (): Promise<typ.Task[]> => {
     const tasks = [];
     for (
       const [id, name, startAt, intervalDay, doneAt] of db.query(`
@@ -82,15 +82,15 @@ LEFT JOIN ${tables.done_task} ON ${tables.done_task}.periodicTaskId = ${tables.p
   )
 `)
     ) {
-      const task: Task = {
+      const task: typ.Task = {
         id: ensureNumber(id),
         name: ensureString(name),
         startAt: parse(ensureString(startAt), timeFormat),
         intervalDay: ensureNumber(intervalDay),
-        doneAt: null,
+        recentDoneAt: null,
       };
       if (isString(doneAt)) {
-        task.doneAt = parse(doneAt, timeFormat);
+        task.recentDoneAt = parse(doneAt, timeFormat);
       }
       tasks.push(task);
     }
