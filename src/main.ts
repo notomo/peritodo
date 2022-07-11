@@ -1,6 +1,6 @@
 import { Command } from "cliffy/command";
-import * as taskActions from "./app/task/mod.ts";
-import * as dataActions from "./app/data/mod.ts";
+import * as taskActions from "./action/task/mod.ts";
+import * as dataActions from "./action/data/mod.ts";
 
 async function main() {
   await new Command()
