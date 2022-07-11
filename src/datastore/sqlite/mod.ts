@@ -4,6 +4,8 @@ import xdg from "xdg";
 import { DB } from "sqlite";
 import sql from "./gen_sql.json" assert { type: "json" };
 
+export const tables = sql.tables;
+
 type Teardown = () => void;
 
 function getDataDir(): string {

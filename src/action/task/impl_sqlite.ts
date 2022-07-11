@@ -1,14 +1,10 @@
 import { DB } from "sqlite";
+import { tables } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 import { format, parse } from "datetime";
 import { ensureNumber, ensureString, isString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
-
-const tables = {
-  periodicTask: "periodicTask",
-  doneTask: "doneTask",
-};
 
 export function newPersistTask(db: DB): typ.PersistTask {
   return (task: typ.PersisTaskParam): Promise<void> => {
