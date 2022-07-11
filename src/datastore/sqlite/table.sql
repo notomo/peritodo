@@ -1,13 +1,13 @@
-CREATE TABLE IF NOT EXISTS periodic_task (
+CREATE TABLE IF NOT EXISTS periodicTask (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK(name != ''),
   startAt TEXT NOT NULL,
   intervalDay INTEGER CHECK(intervalDay > 0)
 );
 
-CREATE TABLE IF NOT EXISTS done_task (
+CREATE TABLE IF NOT EXISTS doneTask (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   periodicTaskId INTEGER NOT NULL,
   doneAt TEXT NOT NULL,
-  FOREIGN KEY (periodicTaskId) REFERENCES periodic_task(id)
+  FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id)
 );

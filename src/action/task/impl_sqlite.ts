@@ -6,15 +6,15 @@ import { ensureNumber, ensureString, isString } from "unknownutil";
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 
 const tables = {
-  periodic_task: "periodic_task",
-  done_task: "done_task",
+  periodicTask: "periodicTask",
+  doneTask: "doneTask",
 };
 
 export function newPersistTask(db: DB): typ.PersistTask {
   return (task: typ.PersisTaskParam): Promise<void> => {
     db.query(
       `
-INSERT INTO ${tables.periodic_task} (
+INSERT INTO ${tables.periodicTask} (
   name
   ,startAt
   ,intervalDay
@@ -34,7 +34,7 @@ export function newDoneTask(db: DB): typ.DoneTask {
   return (id: number, now: Date): Promise<void> => {
     db.query(
       `
-INSERT INTO ${tables.done_task} (
+INSERT INTO ${tables.doneTask} (
   periodicTaskId
   ,doneAt
 ) VALUES (?, ?)
@@ -51,10 +51,10 @@ INSERT INTO ${tables.done_task} (
 export function newRemoveTask(db: DB): typ.RemoveTask {
   return (id: number): Promise<void> => {
     db.transaction(() => {
-      db.query(`DELETE FROM ${tables.done_task} WHERE periodicTaskId = ?`, [
+      db.query(`DELETE FROM ${tables.doneTask} WHERE periodicTaskId = ?`, [
         id,
       ]);
-      db.query(`DELETE FROM ${tables.periodic_task} WHERE id = ?`, [
+      db.query(`DELETE FROM ${tables.periodicTask} WHERE id = ?`, [
         id,
       ]);
     });
@@ -68,17 +68,17 @@ export function newFetchTask(db: DB): typ.FetchTasks {
     for (
       const [id, name, startAt, intervalDay, doneAt] of db.query(`
 SELECT
-  ${tables.periodic_task}.id
-  ,${tables.periodic_task}.name
-  ,${tables.periodic_task}.startAt
-  ,${tables.periodic_task}.intervalDay
-  ,${tables.done_task}.doneAt
-FROM ${tables.periodic_task}
-LEFT JOIN ${tables.done_task} ON ${tables.done_task}.periodicTaskId = ${tables.periodic_task}.id
+  ${tables.periodicTask}.id
+  ,${tables.periodicTask}.name
+  ,${tables.periodicTask}.startAt
+  ,${tables.periodicTask}.intervalDay
+  ,${tables.doneTask}.doneAt
+FROM ${tables.periodicTask}
+LEFT JOIN ${tables.doneTask} ON ${tables.doneTask}.periodicTaskId = ${tables.periodicTask}.id
   AND NOT EXISTS (
     SELECT 1
-    FROM ${tables.done_task} done
-    WHERE done.doneAt > ${tables.done_task}.doneAt
+    FROM ${tables.doneTask} done
+    WHERE done.doneAt > ${tables.doneTask}.doneAt
   )
 `)
     ) {
