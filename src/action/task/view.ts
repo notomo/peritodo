@@ -1,19 +1,6 @@
-import { FetchTasks, nextDate, PersistTask } from "./type.ts";
+import { nextDate, Task } from "./type.ts";
 import { Table } from "cliffy/table";
 import { format } from "datetime";
-
-export function addTask(
-  persist: PersistTask,
-  name: string,
-  intervalDay: number,
-): Promise<void> {
-  const task = {
-    name: name,
-    startAt: new Date(),
-    intervalDay: intervalDay,
-  };
-  return persist(task);
-}
 
 const timeFormat = "yyyy-MM-dd";
 const timeColumn = (at: Date | null) => {
@@ -23,12 +10,11 @@ const timeColumn = (at: Date | null) => {
   return format(at, timeFormat);
 };
 
-export async function listTasks(
-  fetcher: FetchTasks,
+export async function listView(
+  tasks: Task[],
   write: (output: string) => Promise<void>,
   now: Date,
 ): Promise<void> {
-  const tasks = await fetcher();
   const table = new Table().header([
     "Id",
     "Name",
@@ -51,5 +37,5 @@ export async function listTasks(
     ]);
   }
   const output = table.toString();
-  return write(output);
+  await write(output);
 }

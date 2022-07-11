@@ -1,5 +1,5 @@
 import { setupDatastore } from "/datastore/sqlite/mod.ts";
-import { addTask, listTasks } from "./action.ts";
+import { listView } from "./view.ts";
 import {
   newDoneTask,
   newFetchTask,
@@ -12,10 +12,17 @@ export async function add(params: {
   name: string;
   intervalDay: number;
 }) {
+  const now = new Date();
+  const task = {
+    name: params.name,
+    startAt: now,
+    intervalDay: params.intervalDay,
+  };
+
   const [datastore, teardown] = await setupDatastore();
   try {
     const persistTask = newPersistTask(datastore);
-    await addTask(persistTask, params.name, params.intervalDay);
+    await persistTask(task);
   } finally {
     teardown();
   }
@@ -50,7 +57,8 @@ export async function list() {
   const [datastore, teardown] = await setupDatastore();
   try {
     const fetchTask = newFetchTask(datastore);
-    await listTasks(fetchTask, write, now);
+    const tasks = await fetchTask();
+    await listView(tasks, write, now);
   } finally {
     teardown();
   }
