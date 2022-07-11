@@ -50,14 +50,14 @@ INSERT INTO ${tables.done_task} (
 
 export function newRemoveTask(db: DB): typ.RemoveTask {
   return (id: number): Promise<void> => {
-    db.query(
-      `
-DELETE FROM ${tables.periodic_task} WHERE id = ?
-`,
-      [
+    db.transaction(() => {
+      db.query(`DELETE FROM ${tables.done_task} WHERE periodicTaskId = ?`, [
         id,
-      ],
-    );
+      ]);
+      db.query(`DELETE FROM ${tables.periodic_task} WHERE id = ?`, [
+        id,
+      ]);
+    });
     return Promise.resolve();
   };
 }
