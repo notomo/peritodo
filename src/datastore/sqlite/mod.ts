@@ -29,5 +29,12 @@ export async function setupDatastore(): Promise<[DB, Teardown]> {
 
 export async function clearDatastore(): Promise<void> {
   const dataDir = getDataDir();
-  await Deno.remove(dataDir, { recursive: true });
+  try {
+    await Deno.remove(dataDir, { recursive: true });
+  } catch (error) {
+    if (error && error.name === "NotFound") {
+      return;
+    }
+    throw error;
+  }
 }
