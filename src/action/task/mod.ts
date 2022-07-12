@@ -1,6 +1,7 @@
 import { setupDatastore } from "/datastore/sqlite/mod.ts";
 import { listView } from "./view.ts";
 import * as impl from "./impl_sqlite.ts";
+import * as typ from "./type.ts";
 import { newTextWriter } from "/lib/writer.ts";
 
 export async function add(params: {
@@ -23,7 +24,7 @@ export async function add(params: {
   }
 }
 
-export async function done(_options: void, id: number) {
+export async function done(_options: void, id: typ.TaskId) {
   const now = new Date();
 
   const [datastore, teardown] = await setupDatastore();
@@ -35,7 +36,7 @@ export async function done(_options: void, id: number) {
   }
 }
 
-export async function remove(_options: void, id: number) {
+export async function remove(_options: void, id: typ.TaskId) {
   const [datastore, teardown] = await setupDatastore();
   try {
     const removeTask = impl.newRemoveTask(datastore);

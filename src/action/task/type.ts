@@ -25,8 +25,8 @@ export function nextDate(task: Task, now: Date): Date {
 export type PersisTaskParam = Omit<Task, "id" | "recentDoneAt">;
 export type PersistTask = (task: PersisTaskParam) => Promise<void>;
 
-export type RemoveTask = (task: TaskId) => Promise<void>;
+export type RemoveTask = (taskId: TaskId) => Promise<void>;
 
-export type DoneTask = (task: TaskId, now: Date) => Promise<void>;
+export type DoneTask = (taskId: TaskId, now: Date) => Promise<void>;
 
 export type FetchTasks = () => Promise<Task[]>;

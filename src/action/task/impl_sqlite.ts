@@ -14,45 +14,55 @@ INSERT INTO ${tables.periodicTask} (
   name
   ,startAt
   ,intervalDay
-) VALUES (?, ?, ?)
+) VALUES (
+  :name
+  ,:startAt
+  ,:intervalDay
+)
 `,
-      [
-        task.name,
-        format(task.startAt, timeFormat),
-        task.intervalDay,
-      ],
+      {
+        name: task.name,
+        startAt: format(task.startAt, timeFormat),
+        intervalDay: task.intervalDay,
+      },
     );
     return Promise.resolve();
   };
 }
 
 export function newDoneTask(db: DB): typ.DoneTask {
-  return (id: number, now: Date): Promise<void> => {
+  return (id: typ.TaskId, now: Date): Promise<void> => {
     db.query(
       `
 INSERT INTO ${tables.doneTask} (
   periodicTaskId
   ,doneAt
-) VALUES (?, ?)
+) VALUES (
+  :periodicTaskId
+  ,:doneAt
+)
 `,
-      [
-        id,
-        format(now, timeFormat),
-      ],
+      {
+        periodicTaskId: id,
+        doneAt: format(now, timeFormat),
+      },
     );
     return Promise.resolve();
   };
 }
 
 export function newRemoveTask(db: DB): typ.RemoveTask {
-  return (id: number): Promise<void> => {
+  return (id: typ.TaskId): Promise<void> => {
     db.transaction(() => {
-      db.query(`DELETE FROM ${tables.doneTask} WHERE periodicTaskId = ?`, [
-        id,
-      ]);
-      db.query(`DELETE FROM ${tables.periodicTask} WHERE id = ?`, [
-        id,
-      ]);
+      db.query(
+        `DELETE FROM ${tables.doneTask} WHERE periodicTaskId = :periodicTaskId`,
+        {
+          periodicTaskId: id,
+        },
+      );
+      db.query(`DELETE FROM ${tables.periodicTask} WHERE id = :id`, {
+        id: id,
+      });
     });
     return Promise.resolve();
   };
