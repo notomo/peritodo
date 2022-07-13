@@ -5,8 +5,8 @@ DENO_ARGS:= ${IMPORT_MAP_ARGS} --allow-env --allow-read --allow-write ${MAIN}
 
 INPUT_PATH:=./src/datastore/sqlite/table.sql
 OUTPUT_PATH:=./src/datastore/sqlite/gen_sql.ts
-$(OUTPUT_PATH): $(INPUT_PATH) ./script/*
-	deno run --allow-read --allow-write ./script/build.ts ${INPUT_PATH} ${OUTPUT_PATH}
+$(OUTPUT_PATH): $(INPUT_PATH) ./script/generate_sql/*
+	deno run --allow-read --allow-write ./script/generate_sql/main.ts ${INPUT_PATH} ${OUTPUT_PATH}
 	deno fmt ${OUTPUT_PATH}
 
 build: $(OUTPUT_PATH)
