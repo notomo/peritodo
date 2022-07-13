@@ -1,52 +1,29 @@
 import { DB } from "sqlite";
-import { tables } from "/datastore/sqlite/mod.ts";
+import { sql } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 import { format, parse } from "datetime";
 import { ensureNumber, ensureString, isString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
+const tables = sql.tables;
 
 export function newPersistTask(db: DB): typ.PersistTask {
   return (task: typ.PersisTaskParam): Promise<void> => {
-    db.query(
-      `
-INSERT INTO ${tables.periodicTask} (
-  name
-  ,startAt
-  ,intervalDay
-) VALUES (
-  :name
-  ,:startAt
-  ,:intervalDay
-)
-`,
-      {
-        name: task.name,
-        startAt: format(task.startAt, timeFormat),
-        intervalDay: task.intervalDay,
-      },
-    );
+    sql.insertPeriodicTask(db, {
+      name: task.name,
+      startAt: format(task.startAt, timeFormat),
+      intervalDay: task.intervalDay,
+    });
     return Promise.resolve();
   };
 }
 
 export function newDoneTask(db: DB): typ.DoneTask {
   return (id: typ.TaskId, now: Date): Promise<void> => {
-    db.query(
-      `
-INSERT INTO ${tables.doneTask} (
-  periodicTaskId
-  ,doneAt
-) VALUES (
-  :periodicTaskId
-  ,:doneAt
-)
-`,
-      {
-        periodicTaskId: id,
-        doneAt: format(now, timeFormat),
-      },
-    );
+    sql.insertDoneTask(db, {
+      periodicTaskId: id,
+      doneAt: format(now, timeFormat),
+    });
     return Promise.resolve();
   };
 }

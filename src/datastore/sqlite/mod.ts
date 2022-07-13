@@ -2,9 +2,8 @@ import { join } from "path";
 import { ensureDir } from "fs";
 import xdg from "xdg";
 import { DB } from "sqlite";
-import sql from "./gen_sql.json" assert { type: "json" };
-
-export const tables = sql.tables;
+import * as sql from "./gen_sql.ts";
+export * as sql from "./gen_sql.ts";
 
 type Teardown = () => void;
 

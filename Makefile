@@ -4,9 +4,12 @@ IMPORT_MAP_ARGS:=--importmap import_map.json
 DENO_ARGS:= ${IMPORT_MAP_ARGS} --allow-env --allow-read --allow-write ${MAIN}
 
 INPUT_PATH:=./src/datastore/sqlite/table.sql
-OUTPUT_PATH:=./src/datastore/sqlite/gen_sql.json
-build:
-	deno run --allow-read=${INPUT_PATH} --allow-write=${OUTPUT_PATH} ./script/build.ts ${INPUT_PATH} ${OUTPUT_PATH}
+OUTPUT_PATH:=./src/datastore/sqlite/gen_sql.ts
+$(OUTPUT_PATH): $(INPUT_PATH) ./script/*
+	deno run --allow-read --allow-write ./script/build.ts ${INPUT_PATH} ${OUTPUT_PATH}
+	deno fmt ${OUTPUT_PATH}
+
+build: $(OUTPUT_PATH)
 
 start: build
 	deno run ${DENO_ARGS} task list
