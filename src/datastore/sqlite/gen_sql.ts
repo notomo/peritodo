@@ -1,4 +1,5 @@
 import { DB } from "sqlite";
+import { asConditionPart } from "./builder.ts";
 
 export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,6 +43,22 @@ INSERT INTO periodicTask (
   );
 }
 
+export type DeletePeriodicTaskParams = {
+  id: number;
+  name: string;
+  startAt: string;
+  intervalDay: number;
+};
+
+export function deletePeriodicTask(
+  db: DB,
+  params: Partial<DeletePeriodicTaskParams>,
+) {
+  const condition = asConditionPart(params);
+  const query = `DELETE FROM periodicTask WHERE ${condition}`;
+  db.query(query, params);
+}
+
 // table name: doneTask
 export type InsertDoneTaskParams = {
   periodicTaskId: number;
@@ -60,4 +77,16 @@ INSERT INTO doneTask (
 )`,
     params,
   );
+}
+
+export type DeleteDoneTaskParams = {
+  id: number;
+  periodicTaskId: number;
+  doneAt: string;
+};
+
+export function deleteDoneTask(db: DB, params: Partial<DeleteDoneTaskParams>) {
+  const condition = asConditionPart(params);
+  const query = `DELETE FROM doneTask WHERE ${condition}`;
+  db.query(query, params);
 }

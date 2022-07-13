@@ -20,10 +20,16 @@ export function generate(path: string, tables: Table[], sql: string) {
 }
 
 function generateForAll(source: SourceFile, tables: Table[], sql: string) {
-  source.addImportDeclaration({
-    namedImports: ["DB"],
-    moduleSpecifier: "sqlite",
-  });
+  source.addImportDeclarations([
+    {
+      namedImports: ["DB"],
+      moduleSpecifier: "sqlite",
+    },
+    {
+      namedImports: ["asConditionPart"],
+      moduleSpecifier: "./builder.ts",
+    },
+  ]);
 
   source.addVariableStatement({
     isExported: true,
@@ -57,12 +63,12 @@ function capitalize(tableName: string): string {
 }
 
 function generateOne(source: SourceFile, table: Table) {
+  const insertObject = new Map<string, WriterFunction>();
   const columnsExceptAutoIncrement = table.columns.filter((column) => {
     return !column.isAutoIncrement;
   });
-  const typeObject = new Map<string, WriterFunction>();
   for (const column of columnsExceptAutoIncrement) {
-    typeObject.set(column.name, (writer) => {
+    insertObject.set(column.name, (writer) => {
       writer.write(column.type);
     });
   }
@@ -74,7 +80,7 @@ function generateOne(source: SourceFile, table: Table) {
   source.addTypeAlias({
     isExported: true,
     name: insertParamsName,
-    type: Writers.object(Object.fromEntries(typeObject)),
+    type: Writers.object(Object.fromEntries(insertObject)),
   });
 
   const insert = insertQuery(table, columnsExceptAutoIncrement);
@@ -87,6 +93,36 @@ function generateOne(source: SourceFile, table: Table) {
     ],
     statements: (writer) => {
       writer.writeLine(`db.query(\`${insert}\`, params)`);
+    },
+  });
+
+  const deleteObject = new Map<string, WriterFunction>();
+  for (const column of table.columns) {
+    deleteObject.set(column.name, (writer) => {
+      writer.write(column.type);
+    });
+  }
+
+  const deleteParamsName = `Delete${capitalized}Params`;
+  source.addTypeAlias({
+    isExported: true,
+    name: deleteParamsName,
+    type: Writers.object(Object.fromEntries(deleteObject)),
+  });
+
+  source.addFunction({
+    isExported: true,
+    name: `delete${capitalized}`,
+    parameters: [
+      { name: "db", type: "DB" },
+      { name: "params", type: `Partial<${deleteParamsName}>` },
+    ],
+    statements: (writer) => {
+      writer.writeLine(`const condition = asConditionPart(params)`);
+      writer.writeLine(
+        `const query = \`DELETE FROM ${table.name} WHERE \${condition}\`;`,
+      );
+      writer.writeLine(`db.query(query, params)`);
     },
   });
 }

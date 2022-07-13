@@ -31,15 +31,8 @@ export function newDoneTask(db: DB): typ.DoneTask {
 export function newRemoveTask(db: DB): typ.RemoveTask {
   return (id: typ.TaskId): Promise<void> => {
     db.transaction(() => {
-      db.query(
-        `DELETE FROM ${tables.doneTask} WHERE periodicTaskId = :periodicTaskId`,
-        {
-          periodicTaskId: id,
-        },
-      );
-      db.query(`DELETE FROM ${tables.periodicTask} WHERE id = :id`, {
-        id: id,
-      });
+      sql.deleteDoneTask(db, { periodicTaskId: id });
+      sql.deletePeriodicTask(db, { id: id });
     });
     return Promise.resolve();
   };
