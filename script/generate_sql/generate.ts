@@ -31,30 +31,66 @@ function generateForAll(source: SourceFile, tables: Table[], sql: string) {
     },
   ]);
 
-  source.addVariableStatement({
-    isExported: true,
-    declarationKind: VariableDeclarationKind.Const,
-    declarations: [{
-      name: "createTable",
-      initializer: (writer) => {
-        writer.writeLine(`\`${sql}\``);
-      },
-    }],
-  });
-
   const tableNames = new Map<string, WriterFunction>();
+  const fullColumnNames = new Map<string, WriterFunction>();
+  const allColumnNames: string[] = [];
   for (const table of tables) {
     tableNames.set(table.name, (writer) => {
       writer.write(`"${table.name}"`);
     });
+    const columnNames = new Map<string, WriterFunction>();
+    for (const column of table.columns) {
+      const fullName = `"${table.name}.${column.name}"`;
+      columnNames.set(column.name, (writer) => {
+        writer.write(fullName);
+      });
+      allColumnNames.push(fullName);
+    }
+    fullColumnNames.set(
+      table.name,
+      Writers.object(Object.fromEntries(columnNames)),
+    );
   }
-  source.addVariableStatement({
+  source.addVariableStatements([
+    {
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [{
+        name: "createTable",
+        initializer: (writer) => {
+          writer.writeLine(`\`${sql}\``);
+        },
+      }],
+    },
+    {
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [{
+        name: "tables",
+        initializer: (writer) => {
+          Writers.object(Object.fromEntries(tableNames))(writer);
+          writer.write(" as const");
+        },
+      }],
+    },
+    {
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [{
+        name: "columns",
+        initializer: (writer) => {
+          Writers.object(Object.fromEntries(fullColumnNames))(writer);
+          writer.write(" as const");
+        },
+      }],
+    },
+  ]);
+  source.addTypeAlias({
     isExported: true,
-    declarationKind: VariableDeclarationKind.Const,
-    declarations: [{
-      name: "tables",
-      initializer: Writers.object(Object.fromEntries(tableNames)),
-    }],
+    name: "AllColumns",
+    type: (writer) => {
+      writer.write(allColumnNames.join(" | "));
+    },
   });
 }
 

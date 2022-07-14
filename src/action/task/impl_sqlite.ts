@@ -1,11 +1,10 @@
 import { DB } from "sqlite";
-import { sql } from "/datastore/sqlite/mod.ts";
+import { alias, sql } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 import { format, parse } from "datetime";
 import { ensureNumber, ensureString, isString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
-const tables = sql.tables;
 
 export function newPersistTask(db: DB): typ.PersistTask {
   return (task: typ.PersisTaskParam): Promise<void> => {
@@ -38,25 +37,38 @@ export function newRemoveTask(db: DB): typ.RemoveTask {
   };
 }
 
+const T = sql.tables;
+const C = sql.columns;
+
 export function newFetchTask(db: DB): typ.FetchTasks {
   return (): Promise<typ.Task[]> => {
     const tasks = [];
-    for (
-      const [id, name, startAt, intervalDay, doneAt] of db.query(`
+
+    const doneTaskAlias = "anotherDoneTask";
+    const selectQuery = `
 SELECT
-  ${tables.periodicTask}.id
-  ,${tables.periodicTask}.name
-  ,${tables.periodicTask}.startAt
-  ,${tables.periodicTask}.intervalDay
-  ,${tables.doneTask}.doneAt
-FROM ${tables.periodicTask}
-LEFT JOIN ${tables.doneTask} ON ${tables.doneTask}.periodicTaskId = ${tables.periodicTask}.id
+  ${C.periodicTask.id}
+  ,${C.periodicTask.name}
+  ,${C.periodicTask.startAt}
+  ,${C.periodicTask.intervalDay}
+  ,${C.doneTask.doneAt}
+FROM ${T.periodicTask}
+LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
   AND NOT EXISTS (
     SELECT 1
-    FROM ${tables.doneTask} done
-    WHERE done.doneAt > ${tables.doneTask}.doneAt
+    FROM ${T.doneTask} ${doneTaskAlias}
+    WHERE ${alias(doneTaskAlias, C.doneTask.doneAt)} > ${C.doneTask.doneAt}
   )
-`)
+`;
+
+    for (
+      const [
+        id,
+        name,
+        startAt,
+        intervalDay,
+        doneAt,
+      ] of db.query(selectQuery)
     ) {
       const task: typ.Task = {
         id: ensureNumber(id),

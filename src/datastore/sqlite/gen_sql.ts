@@ -18,7 +18,29 @@ CREATE TABLE IF NOT EXISTS doneTask (
 export const tables = {
   periodicTask: "periodicTask",
   doneTask: "doneTask",
-};
+} as const;
+export const columns = {
+  periodicTask: {
+    id: "periodicTask.id",
+    name: "periodicTask.name",
+    startAt: "periodicTask.startAt",
+    intervalDay: "periodicTask.intervalDay",
+  },
+  doneTask: {
+    id: "doneTask.id",
+    periodicTaskId: "doneTask.periodicTaskId",
+    doneAt: "doneTask.doneAt",
+  },
+} as const;
+
+export type AllColumns =
+  | "periodicTask.id"
+  | "periodicTask.name"
+  | "periodicTask.startAt"
+  | "periodicTask.intervalDay"
+  | "doneTask.id"
+  | "doneTask.periodicTaskId"
+  | "doneTask.doneAt";
 
 // table name: periodicTask
 export type InsertPeriodicTaskParams = {

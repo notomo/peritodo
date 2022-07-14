@@ -4,6 +4,7 @@ import xdg from "xdg";
 import { DB } from "sqlite";
 import * as sql from "./gen_sql.ts";
 export * as sql from "./gen_sql.ts";
+export { alias } from "./select.ts";
 
 type Teardown = () => void;
 
