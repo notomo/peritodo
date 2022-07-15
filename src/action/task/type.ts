@@ -2,14 +2,15 @@ import { difference } from "datetime";
 import { ensureNumber } from "unknownutil";
 
 export type Task = {
-  id: number;
-  name: string;
-  startAt: Date;
-  intervalDay: number;
-  recentDoneAt: Date | null;
+  readonly id: number;
+  readonly name: string;
+  readonly startAt: Date;
+  readonly intervalDay: number;
+  readonly recentDoneAt?: Date;
 };
 
 export type TaskId = Task["id"];
+export type TaskAt = Task["startAt"] | Task["recentDoneAt"];
 
 export function nextDate(task: Task, now: Date): Date {
   const diff = difference(task.startAt, task.recentDoneAt || now, {

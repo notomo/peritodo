@@ -3,8 +3,8 @@ import { Table } from "cliffy/table";
 import { format } from "datetime";
 
 const timeFormat = "yyyy-MM-dd";
-const timeColumn = (at: Date | null) => {
-  if (at === null) {
+const timeColumn = (at: typ.TaskAt) => {
+  if (at === undefined) {
     return "";
   }
   return format(at, timeFormat);

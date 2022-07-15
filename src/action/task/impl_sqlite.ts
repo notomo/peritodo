@@ -39,8 +39,6 @@ const C = sql.columns;
 
 export function newFetchTask(db: DB): typ.FetchTasks {
   return (): Promise<typ.Task[]> => {
-    const tasks = [];
-
     const doneTaskAlias = "anotherDoneTask";
     const selectQuery = `
 SELECT
@@ -58,6 +56,7 @@ LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
   )
 `;
 
+    const tasks = [];
     for (
       const [
         id,
@@ -72,11 +71,8 @@ LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
         name: ensureString(name),
         startAt: parse(ensureString(startAt), timeFormat),
         intervalDay: ensureNumber(intervalDay),
-        recentDoneAt: null,
+        recentDoneAt: isString(doneAt) ? parse(doneAt, timeFormat) : undefined,
       };
-      if (isString(doneAt)) {
-        task.recentDoneAt = parse(doneAt, timeFormat);
-      }
       tasks.push(task);
     }
     return Promise.resolve(tasks);
