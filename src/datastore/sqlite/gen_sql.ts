@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS doneTask (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   periodicTaskId INTEGER NOT NULL,
   doneAt TEXT NOT NULL,
-  FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id)
+  FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
 );
 `;
 export const tables = {

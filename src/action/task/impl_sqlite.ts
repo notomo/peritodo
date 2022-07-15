@@ -29,10 +29,7 @@ export function newDoneTask(db: DB): typ.DoneTask {
 
 export function newRemoveTask(db: DB): typ.RemoveTask {
   return (id: typ.TaskId): Promise<void> => {
-    db.transaction(() => {
-      sql.deleteDoneTask(db, { periodicTaskId: id });
-      sql.deletePeriodicTask(db, { id: id });
-    });
+    sql.deletePeriodicTask(db, { id: id });
     return Promise.resolve();
   };
 }
