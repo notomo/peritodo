@@ -66,14 +66,13 @@ LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
         doneAt,
       ] of db.query(selectQuery)
     ) {
-      const task: typ.Task = {
+      tasks.push({
         id: ensureNumber(id),
         name: ensureString(name),
         startAt: parse(ensureString(startAt), timeFormat),
         intervalDay: ensureNumber(intervalDay),
         recentDoneAt: isString(doneAt) ? parse(doneAt, timeFormat) : undefined,
-      };
-      tasks.push(task);
+      });
     }
     return Promise.resolve(tasks);
   };

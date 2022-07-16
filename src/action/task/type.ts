@@ -1,13 +1,13 @@
 import { difference } from "datetime";
 import { ensureNumber } from "unknownutil";
 
-export type Task = {
-  readonly id: number;
-  readonly name: string;
-  readonly startAt: Date;
-  readonly intervalDay: number;
-  readonly recentDoneAt?: Date;
-};
+export type Task = Readonly<{
+  id: number;
+  name: string;
+  startAt: Date;
+  intervalDay: number;
+  recentDoneAt?: Date;
+}>;
 
 export type TaskId = Task["id"];
 export type TaskAt = Task["startAt"] | Task["recentDoneAt"];

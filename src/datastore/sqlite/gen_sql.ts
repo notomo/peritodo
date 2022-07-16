@@ -15,10 +15,12 @@ CREATE TABLE IF NOT EXISTS doneTask (
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
 );
 `;
+
 export const tables = {
   periodicTask: "periodicTask",
   doneTask: "doneTask",
 } as const;
+
 export const columns = {
   periodicTask: {
     id: "periodicTask.id",
@@ -42,7 +44,6 @@ export type AllColumns =
   | "doneTask.periodicTaskId"
   | "doneTask.doneAt";
 
-// table name: periodicTask
 export type InsertPeriodicTaskParams = {
   name: string;
   startAt: string;
@@ -81,7 +82,6 @@ export function deletePeriodicTask(
   db.query(query, params);
 }
 
-// table name: doneTask
 export type InsertDoneTaskParams = {
   periodicTaskId: number;
   doneAt: string;

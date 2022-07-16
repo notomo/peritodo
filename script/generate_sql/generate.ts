@@ -61,6 +61,7 @@ function generateForAll(source: SourceFile, tables: Table[], sql: string) {
           writer.writeLine(`\`${sql}\``);
         },
       }],
+      trailingTrivia: "\n",
     },
     {
       isExported: true,
@@ -72,6 +73,7 @@ function generateForAll(source: SourceFile, tables: Table[], sql: string) {
           writer.write(" as const");
         },
       }],
+      trailingTrivia: "\n",
     },
     {
       isExported: true,
@@ -83,6 +85,7 @@ function generateForAll(source: SourceFile, tables: Table[], sql: string) {
           writer.write(" as const");
         },
       }],
+      trailingTrivia: "\n",
     },
   ]);
   source.addTypeAlias({
@@ -91,6 +94,7 @@ function generateForAll(source: SourceFile, tables: Table[], sql: string) {
     type: (writer) => {
       writer.write(allColumnNames.join(" | "));
     },
+    trailingTrivia: "\n",
   });
 }
 
@@ -108,15 +112,13 @@ function generateOne(source: SourceFile, table: Table) {
       writer.write(column.type);
     });
   }
-  source.addStatements((writer) => {
-    writer.newLine().writeLine(`// table name: ${table.name}`);
-  });
   const capitalized = capitalize(table.name);
   const insertParamsName = `Insert${capitalized}Params`;
   source.addTypeAlias({
     isExported: true,
     name: insertParamsName,
     type: Writers.object(Object.fromEntries(insertObject)),
+    leadingTrivia: "\n",
   });
 
   const insert = insertQuery(table, columnsExceptAutoIncrement);
