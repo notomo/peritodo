@@ -16,9 +16,9 @@ start: build
 	@echo "\n"
 	deno run ${DENO_ARGS} done_task list
 
-ARGS:=add --name=example --interval-day=15
+ARGS:=task add --name=example --interval-day=15
 run: build
-	deno run ${DENO_ARGS} task ${ARGS}
+	deno run ${DENO_ARGS} ${ARGS}
 
 install: build
 	deno install --force --name ${CMD_NAME} ${DENO_ARGS}

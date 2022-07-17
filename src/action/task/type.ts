@@ -36,6 +36,8 @@ export type DoneTask = Readonly<{
   doneAt: Date;
   name: string;
 }>;
+export type DoneTaskId = DoneTask["id"];
 
 export type PersistDoneTask = (taskId: TaskId, now: Date) => Promise<void>;
+export type RemoveDoneTask = (taskId: DoneTaskId) => Promise<void>;
 export type FetchDoneTasks = () => Promise<DoneTask[]>;

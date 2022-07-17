@@ -39,8 +39,18 @@ export async function done(_options: void, id: typ.TaskId) {
 export async function remove(_options: void, id: typ.TaskId) {
   const [datastore, teardown] = await setupDatastore();
   try {
-    const removeTask = impl.newRemoveTask(datastore);
-    await removeTask(id);
+    const remove = impl.newRemoveTask(datastore);
+    await remove(id);
+  } finally {
+    teardown();
+  }
+}
+
+export async function undone(_options: void, id: typ.DoneTaskId) {
+  const [datastore, teardown] = await setupDatastore();
+  try {
+    const remove = impl.newRemoveDoneTask(datastore);
+    await remove(id);
   } finally {
     teardown();
   }

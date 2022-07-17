@@ -34,6 +34,13 @@ export function newRemoveTask(db: DB): typ.RemoveTask {
   };
 }
 
+export function newRemoveDoneTask(db: DB): typ.RemoveDoneTask {
+  return (id: typ.DoneTaskId): Promise<void> => {
+    sql.deleteDoneTask(db, { id: id });
+    return Promise.resolve();
+  };
+}
+
 const T = sql.tables;
 const C = sql.columns;
 

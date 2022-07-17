@@ -28,7 +28,10 @@ async function main() {
       "done_task",
       new Command()
         .command("list")
-        .action(taskActions.listDoneTasks),
+        .action(taskActions.listDoneTasks)
+        .command("undone")
+        .arguments("<id:number>")
+        .action(taskActions.undone),
     )
     .command(
       "data",
