@@ -1,5 +1,5 @@
 import { setupDatastore } from "/datastore/sqlite/mod.ts";
-import { listView } from "./view.ts";
+import * as view from "./view.ts";
 import * as impl from "./impl_sqlite.ts";
 import * as typ from "./type.ts";
 import { newTextWriter } from "/lib/writer.ts";
@@ -46,7 +46,7 @@ export async function remove(_options: void, id: typ.TaskId) {
   }
 }
 
-export async function list() {
+export async function listPeriodicTasks() {
   const write = newTextWriter(Deno.stdout);
   const now = new Date();
 
@@ -54,7 +54,20 @@ export async function list() {
   try {
     const fetchTask = impl.newFetchTask(datastore);
     const tasks = await fetchTask();
-    await listView(tasks, write, now);
+    await view.listPeriodicTasks(tasks, write, now);
+  } finally {
+    teardown();
+  }
+}
+
+export async function listDoneTasks() {
+  const write = newTextWriter(Deno.stdout);
+
+  const [datastore, teardown] = await setupDatastore();
+  try {
+    const fetchDoneTask = impl.newFetchDoneTask(datastore);
+    const doneTasks = await fetchDoneTask();
+    await view.listDoneTasks(doneTasks, write);
   } finally {
     teardown();
   }

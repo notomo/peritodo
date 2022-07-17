@@ -17,7 +17,7 @@ export function newPersistTask(db: DB): typ.PersistTask {
   };
 }
 
-export function newDoneTask(db: DB): typ.DoneTask {
+export function newDoneTask(db: DB): typ.PersistDoneTask {
   return (id: typ.TaskId, now: Date): Promise<void> => {
     sql.insertDoneTask(db, {
       periodicTaskId: id,
@@ -75,5 +75,37 @@ LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
       });
     }
     return Promise.resolve(tasks);
+  };
+}
+
+export function newFetchDoneTask(db: DB): typ.FetchDoneTasks {
+  return (): Promise<typ.DoneTask[]> => {
+    const selectQuery = `
+SELECT
+  ${C.doneTask.id}
+  ,${C.doneTask.periodicTaskId}
+  ,${C.doneTask.doneAt}
+  ,${C.periodicTask.name}
+FROM ${T.doneTask}
+INNER JOIN ${T.periodicTask} ON ${C.periodicTask.id} = ${C.doneTask.periodicTaskId}
+`;
+
+    const doneTasks = [];
+    for (
+      const [
+        id,
+        periodicTaskId,
+        doneAt,
+        name,
+      ] of db.query(selectQuery)
+    ) {
+      doneTasks.push({
+        id: ensureNumber(id),
+        periodicTaskId: ensureNumber(periodicTaskId),
+        name: ensureString(name),
+        doneAt: parse(ensureString(doneAt), timeFormat),
+      });
+    }
+    return Promise.resolve(doneTasks);
   };
 }

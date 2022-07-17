@@ -13,6 +13,8 @@ build: $(OUTPUT_PATH)
 
 start: build
 	deno run ${DENO_ARGS} task list
+	@echo "\n"
+	deno run ${DENO_ARGS} done_task list
 
 ARGS:=add --name=example --interval-day=15
 run: build

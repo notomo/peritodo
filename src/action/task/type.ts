@@ -28,6 +28,14 @@ export type PersistTask = (task: PersisTaskParam) => Promise<void>;
 
 export type RemoveTask = (taskId: TaskId) => Promise<void>;
 
-export type DoneTask = (taskId: TaskId, now: Date) => Promise<void>;
-
 export type FetchTasks = () => Promise<Task[]>;
+
+export type DoneTask = Readonly<{
+  id: number;
+  periodicTaskId: number;
+  doneAt: Date;
+  name: string;
+}>;
+
+export type PersistDoneTask = (taskId: TaskId, now: Date) => Promise<void>;
+export type FetchDoneTasks = () => Promise<DoneTask[]>;

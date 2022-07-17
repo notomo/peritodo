@@ -10,7 +10,7 @@ const timeColumn = (at: typ.TaskAt) => {
   return format(at, timeFormat);
 };
 
-export async function listView(
+export async function listPeriodicTasks(
   tasks: typ.Task[],
   write: (output: string) => Promise<void>,
   now: Date,
@@ -34,6 +34,30 @@ export async function listView(
       timeColumn(task.startAt),
       task.intervalDay,
       timeColumn(task.recentDoneAt),
+    ]);
+  }
+  const output = table.toString();
+  await write(output);
+}
+
+export async function listDoneTasks(
+  doneTasks: typ.DoneTask[],
+  write: (output: string) => Promise<void>,
+): Promise<void> {
+  const table = new Table().header([
+    "Id",
+    "Periodic task id",
+    "Name",
+    "Done at",
+  ]).border(
+    true,
+  );
+  for (const task of doneTasks) {
+    table.push([
+      task.id,
+      task.periodicTaskId,
+      task.name,
+      timeColumn(task.doneAt),
     ]);
   }
   const output = table.toString();

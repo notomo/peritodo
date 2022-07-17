@@ -16,13 +16,19 @@ async function main() {
         })
         .action(taskActions.add)
         .command("list")
-        .action(taskActions.list)
+        .action(taskActions.listPeriodicTasks)
         .command("done")
         .arguments("<id:number>")
         .action(taskActions.done)
         .command("remove")
         .arguments("<id:number>")
         .action(taskActions.remove),
+    )
+    .command(
+      "done_task",
+      new Command()
+        .command("list")
+        .action(taskActions.listDoneTasks),
     )
     .command(
       "data",
