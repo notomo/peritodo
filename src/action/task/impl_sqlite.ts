@@ -6,8 +6,8 @@ import { ensureNumber, ensureString, isString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 
-export function newPersistTask(db: DB): typ.PersistTask {
-  return (task: typ.PersisTaskParam): Promise<void> => {
+export function newPersistPeriodicTask(db: DB): typ.PersistPeriodicTask {
+  return (task: typ.PersistPeriodicTaskParam): Promise<void> => {
     sql.insertPeriodicTask(db, {
       name: task.name,
       startAt: format(task.startAt, timeFormat),
@@ -17,8 +17,8 @@ export function newPersistTask(db: DB): typ.PersistTask {
   };
 }
 
-export function newDoneTask(db: DB): typ.PersistDoneTask {
-  return (id: typ.TaskId, now: Date): Promise<void> => {
+export function newPerisistDoneTask(db: DB): typ.PersistDoneTask {
+  return (id: typ.PeriodicTaskId, now: Date): Promise<void> => {
     sql.insertDoneTask(db, {
       periodicTaskId: id,
       doneAt: format(now, timeFormat),
@@ -27,8 +27,8 @@ export function newDoneTask(db: DB): typ.PersistDoneTask {
   };
 }
 
-export function newRemoveTask(db: DB): typ.RemoveTask {
-  return (id: typ.TaskId): Promise<void> => {
+export function newRemovePeriodicTask(db: DB): typ.RemovePeriodicTask {
+  return (id: typ.PeriodicTaskId): Promise<void> => {
     sql.deletePeriodicTask(db, { id: id });
     return Promise.resolve();
   };
@@ -44,8 +44,8 @@ export function newRemoveDoneTask(db: DB): typ.RemoveDoneTask {
 const T = sql.tables;
 const C = sql.columns;
 
-export function newFetchTask(db: DB): typ.FetchTasks {
-  return (): Promise<typ.Task[]> => {
+export function newFetchPeriodicTask(db: DB): typ.FetchPeriodicTasks {
+  return (): Promise<typ.PeriodicTask[]> => {
     const doneTaskAlias = "anotherDoneTask";
     const selectQuery = `
 SELECT

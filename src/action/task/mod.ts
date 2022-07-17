@@ -4,7 +4,7 @@ import * as impl from "./impl_sqlite.ts";
 import * as typ from "./type.ts";
 import { newTextWriter } from "/lib/writer.ts";
 
-export async function add(params: {
+export async function addPeriodicTask(params: {
   name: string;
   intervalDay: number;
 }) {
@@ -17,29 +17,32 @@ export async function add(params: {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persistTask = impl.newPersistTask(datastore);
+    const persistTask = impl.newPersistPeriodicTask(datastore);
     await persistTask(task);
   } finally {
     teardown();
   }
 }
 
-export async function done(_options: void, id: typ.TaskId) {
+export async function done(_options: void, id: typ.PeriodicTaskId) {
   const now = new Date();
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const doneTask = impl.newDoneTask(datastore);
+    const doneTask = impl.newPerisistDoneTask(datastore);
     await doneTask(id, now);
   } finally {
     teardown();
   }
 }
 
-export async function remove(_options: void, id: typ.TaskId) {
+export async function removePeriodicTask(
+  _options: void,
+  id: typ.PeriodicTaskId,
+) {
   const [datastore, teardown] = await setupDatastore();
   try {
-    const remove = impl.newRemoveTask(datastore);
+    const remove = impl.newRemovePeriodicTask(datastore);
     await remove(id);
   } finally {
     teardown();
@@ -62,7 +65,7 @@ export async function listPeriodicTasks() {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const fetchTask = impl.newFetchTask(datastore);
+    const fetchTask = impl.newFetchPeriodicTask(datastore);
     const tasks = await fetchTask();
     await view.listPeriodicTasks(tasks, write, now);
   } finally {

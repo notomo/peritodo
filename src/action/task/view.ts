@@ -3,7 +3,7 @@ import { Table } from "cliffy/table";
 import { format } from "datetime";
 
 const timeFormat = "yyyy-MM-dd";
-const timeColumn = (at: typ.TaskAt) => {
+const timeColumn = (at: typ.PeriodicTaskAt) => {
   if (at === undefined) {
     return "";
   }
@@ -11,7 +11,7 @@ const timeColumn = (at: typ.TaskAt) => {
 };
 
 export async function listPeriodicTasks(
-  tasks: typ.Task[],
+  periodicTasks: typ.PeriodicTask[],
   write: (output: string) => Promise<void>,
   now: Date,
 ): Promise<void> {
@@ -25,7 +25,7 @@ export async function listPeriodicTasks(
   ]).border(
     true,
   );
-  for (const task of tasks) {
+  for (const task of periodicTasks) {
     const nextAt = typ.nextDate(task, now);
     table.push([
       task.id,

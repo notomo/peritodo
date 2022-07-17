@@ -14,7 +14,7 @@ async function main() {
         .option("--interval-day=<intervalDay:number>", "interval day", {
           required: true,
         })
-        .action(taskActions.add)
+        .action(taskActions.addPeriodicTask)
         .command("list")
         .action(taskActions.listPeriodicTasks)
         .command("done")
@@ -22,7 +22,7 @@ async function main() {
         .action(taskActions.done)
         .command("remove")
         .arguments("<id:number>")
-        .action(taskActions.remove),
+        .action(taskActions.removePeriodicTask),
     )
     .command(
       "done_task",

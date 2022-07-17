@@ -1,7 +1,7 @@
 import { difference } from "datetime";
 import { ensureNumber } from "unknownutil";
 
-export type Task = Readonly<{
+export type PeriodicTask = Readonly<{
   id: number;
   name: string;
   startAt: Date;
@@ -9,26 +9,38 @@ export type Task = Readonly<{
   recentDoneAt?: Date;
 }>;
 
-export type TaskId = Task["id"];
-export type TaskAt = Task["startAt"] | Task["recentDoneAt"];
+export type PeriodicTaskId = PeriodicTask["id"];
+export type PeriodicTaskAt =
+  | PeriodicTask["startAt"]
+  | PeriodicTask["recentDoneAt"];
 
-export function nextDate(task: Task, now: Date): Date {
-  const diff = difference(task.startAt, task.recentDoneAt || now, {
-    units: ["days"],
-  });
+export function nextDate(periodicTask: PeriodicTask, now: Date): Date {
+  const diff = difference(
+    periodicTask.startAt,
+    periodicTask.recentDoneAt || now,
+    {
+      units: ["days"],
+    },
+  );
   const elapsed = ensureNumber(diff.days);
-  const remain = task.intervalDay - (elapsed % task.intervalDay);
+  const remain = periodicTask.intervalDay -
+    (elapsed % periodicTask.intervalDay);
   const date = new Date(now.getTime());
   date.setDate(date.getDate() + remain);
   return date;
 }
 
-export type PersisTaskParam = Omit<Task, "id" | "recentDoneAt">;
-export type PersistTask = (task: PersisTaskParam) => Promise<void>;
+export type PersistPeriodicTaskParam = Omit<
+  PeriodicTask,
+  "id" | "recentDoneAt"
+>;
+export type PersistPeriodicTask = (
+  task: PersistPeriodicTaskParam,
+) => Promise<void>;
 
-export type RemoveTask = (taskId: TaskId) => Promise<void>;
+export type RemovePeriodicTask = (taskId: PeriodicTaskId) => Promise<void>;
 
-export type FetchTasks = () => Promise<Task[]>;
+export type FetchPeriodicTasks = () => Promise<PeriodicTask[]>;
 
 export type DoneTask = Readonly<{
   id: number;
@@ -38,6 +50,9 @@ export type DoneTask = Readonly<{
 }>;
 export type DoneTaskId = DoneTask["id"];
 
-export type PersistDoneTask = (taskId: TaskId, now: Date) => Promise<void>;
+export type PersistDoneTask = (
+  taskId: PeriodicTaskId,
+  now: Date,
+) => Promise<void>;
 export type RemoveDoneTask = (taskId: DoneTaskId) => Promise<void>;
 export type FetchDoneTasks = () => Promise<DoneTask[]>;
