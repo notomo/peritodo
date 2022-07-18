@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS periodicTaskStatusChange (
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
 );
 
+CREATE INDEX IF NOT EXISTS periodicTaskStatusChange_periodicTaskId ON periodicTaskStatusChange(periodicTaskId);
+
 DROP TRIGGER IF EXISTS checkPeriodicTaskStatusChange;
 CREATE TRIGGER IF NOT EXISTS checkPeriodicTaskStatusChange
 BEFORE INSERT ON periodicTaskStatusChange
@@ -40,6 +42,8 @@ CREATE TABLE IF NOT EXISTS doneTask (
   doneAt TEXT NOT NULL,
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS doneTask_periodicTaskId ON doneTask(periodicTaskId);
 `;
 
 export const tables = {
