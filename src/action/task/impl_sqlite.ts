@@ -8,10 +8,17 @@ const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 
 export function newPersistPeriodicTask(db: DB): typ.PersistPeriodicTask {
   return (task: typ.PersistPeriodicTaskParam): Promise<void> => {
-    sql.insertPeriodicTask(db, {
-      name: task.name,
-      startAt: format(task.startAt, timeFormat),
-      intervalDay: task.intervalDay,
+    db.transaction(() => {
+      sql.insertPeriodicTask(db, {
+        name: task.name,
+        startAt: format(task.startAt, timeFormat),
+        intervalDay: task.intervalDay,
+      });
+      sql.insertPeriodicTaskStatusChange(db, {
+        periodicTaskId: db.lastInsertRowId,
+        changedAt: format(task.startAt, timeFormat),
+        status: typ.PeriodicTaskStatusOpen,
+      });
     });
     return Promise.resolve();
   };
@@ -22,6 +29,23 @@ export function newPerisistDoneTask(db: DB): typ.PersistDoneTask {
     sql.insertDoneTask(db, {
       periodicTaskId: id,
       doneAt: format(now, timeFormat),
+    });
+    return Promise.resolve();
+  };
+}
+
+export function newPerisistPeriodicTaskStatusChange(
+  db: DB,
+): typ.PerisistPeriodicTaskClosedChange {
+  return (
+    id: typ.PeriodicTaskId,
+    now: Date,
+    status: typ.PeriodicTaskStatus,
+  ): Promise<void> => {
+    sql.insertPeriodicTaskStatusChange(db, {
+      periodicTaskId: id,
+      changedAt: format(now, timeFormat),
+      status: status,
     });
     return Promise.resolve();
   };
@@ -47,6 +71,7 @@ const C = sql.columns;
 export function newFetchPeriodicTask(db: DB): typ.FetchPeriodicTasks {
   return (): Promise<typ.PeriodicTask[]> => {
     const doneTaskAlias = "anotherDoneTask";
+    const periodicTaskClosedChangeAlias = "anotherPeriodicTaskClosedChange";
     const selectQuery = `
 SELECT
   ${C.periodicTask.id}
@@ -54,12 +79,21 @@ SELECT
   ,${C.periodicTask.startAt}
   ,${C.periodicTask.intervalDay}
   ,${C.doneTask.doneAt}
+  ,${C.periodicTaskStatusChange.status}
 FROM ${T.periodicTask}
 LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
   AND NOT EXISTS (
     SELECT 1
     FROM ${T.doneTask} ${doneTaskAlias}
     WHERE ${alias(doneTaskAlias, C.doneTask.doneAt)} > ${C.doneTask.doneAt}
+  )
+LEFT JOIN ${T.periodicTaskStatusChange} ON ${C.periodicTaskStatusChange.periodicTaskId} = ${C.periodicTask.id}
+  AND NOT EXISTS (
+    SELECT 1
+    FROM ${T.periodicTaskStatusChange} ${periodicTaskClosedChangeAlias}
+    WHERE ${
+      alias(periodicTaskClosedChangeAlias, C.periodicTaskStatusChange.changedAt)
+    } > ${C.periodicTaskStatusChange.changedAt}
   )
 `;
 
@@ -71,8 +105,12 @@ LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
         startAt,
         intervalDay,
         doneAt,
+        status,
       ] of db.query(selectQuery)
     ) {
+      if (status === typ.PeriodicTaskStatusClose) {
+        continue;
+      }
       tasks.push({
         id: ensureNumber(id),
         name: ensureString(name),

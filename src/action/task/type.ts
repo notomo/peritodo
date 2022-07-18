@@ -56,3 +56,15 @@ export type PersistDoneTask = (
 ) => Promise<void>;
 export type RemoveDoneTask = (taskId: DoneTaskId) => Promise<void>;
 export type FetchDoneTasks = () => Promise<DoneTask[]>;
+
+export const PeriodicTaskStatusOpen = "open" as const;
+export const PeriodicTaskStatusClose = "close" as const;
+export type PeriodicTaskStatus =
+  | typeof PeriodicTaskStatusOpen
+  | typeof PeriodicTaskStatusClose;
+
+export type PerisistPeriodicTaskClosedChange = (
+  taskId: PeriodicTaskId,
+  now: Date,
+  status: PeriodicTaskStatus,
+) => Promise<void>;

@@ -36,6 +36,36 @@ export async function done(_options: void, id: typ.PeriodicTaskId) {
   }
 }
 
+export async function closePeriodicTask(
+  _options: void,
+  id: typ.PeriodicTaskId,
+) {
+  const now = new Date();
+
+  const [datastore, teardown] = await setupDatastore();
+  try {
+    const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
+    await persist(id, now, typ.PeriodicTaskStatusClose);
+  } finally {
+    teardown();
+  }
+}
+
+export async function reopenPeriodicTask(
+  _options: void,
+  id: typ.PeriodicTaskId,
+) {
+  const now = new Date();
+
+  const [datastore, teardown] = await setupDatastore();
+  try {
+    const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
+    await persist(id, now, typ.PeriodicTaskStatusOpen);
+  } finally {
+    teardown();
+  }
+}
+
 export async function removePeriodicTask(
   _options: void,
   id: typ.PeriodicTaskId,

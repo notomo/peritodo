@@ -20,6 +20,12 @@ async function main() {
         .command("done")
         .arguments("<id:number>")
         .action(taskActions.done)
+        .command("close")
+        .arguments("<id:number>")
+        .action(taskActions.closePeriodicTask)
+        .command("reopen")
+        .arguments("<id:number>")
+        .action(taskActions.reopenPeriodicTask)
         .command("remove")
         .arguments("<id:number>")
         .action(taskActions.removePeriodicTask),
