@@ -42,6 +42,8 @@ async function main() {
     .command(
       "data",
       new Command()
+        .command("show")
+        .action(dataActions.show)
         .command("clear")
         .action(dataActions.clear),
     )

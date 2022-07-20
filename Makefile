@@ -34,3 +34,6 @@ fmt:
 
 clean:
 	deno run ${DENO_ARGS} data clear
+
+inspect:
+	deno run ${DENO_ARGS} data show
