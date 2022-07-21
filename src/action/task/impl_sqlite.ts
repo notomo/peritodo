@@ -70,8 +70,11 @@ const C = sql.columns;
 
 export function newFetchPeriodicTask(db: DB): typ.FetchPeriodicTasks {
   return (): Promise<typ.PeriodicTask[]> => {
-    const doneTaskAlias = "anotherDoneTask";
-    const periodicTaskClosedChangeAlias = "anotherPeriodicTaskClosedChange";
+    const A = {
+      doneTask: "anotherDoneTask",
+      periodicTaskStatusChange: "anotherPeriodicTaskStatusChange",
+    };
+
     const selectQuery = `
 SELECT
   ${C.periodicTask.id}
@@ -84,15 +87,15 @@ FROM ${T.periodicTask}
 LEFT JOIN ${T.doneTask} ON ${C.doneTask.periodicTaskId} = ${C.periodicTask.id}
   AND NOT EXISTS (
     SELECT 1
-    FROM ${T.doneTask} ${doneTaskAlias}
-    WHERE ${alias(doneTaskAlias, C.doneTask.doneAt)} > ${C.doneTask.doneAt}
+    FROM ${T.doneTask} ${A.doneTask}
+    WHERE ${alias(A.doneTask, C.doneTask.doneAt)} > ${C.doneTask.doneAt}
   )
 LEFT JOIN ${T.periodicTaskStatusChange} ON ${C.periodicTaskStatusChange.periodicTaskId} = ${C.periodicTask.id}
   AND NOT EXISTS (
     SELECT 1
-    FROM ${T.periodicTaskStatusChange} ${periodicTaskClosedChangeAlias}
+    FROM ${T.periodicTaskStatusChange} ${A.periodicTaskStatusChange}
     WHERE ${
-      alias(periodicTaskClosedChangeAlias, C.periodicTaskStatusChange.changedAt)
+      alias(A.periodicTaskStatusChange, C.periodicTaskStatusChange.changedAt)
     } > ${C.periodicTaskStatusChange.changedAt}
   )
 `;

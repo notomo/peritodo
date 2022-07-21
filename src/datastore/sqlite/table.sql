@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS periodicTask (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL CHECK(name != ''),
   startAt TEXT NOT NULL,
   intervalDay INTEGER CHECK(intervalDay > 0)
@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS periodicTaskStatusChange (
 
 CREATE INDEX IF NOT EXISTS periodicTaskStatusChange_periodicTaskId ON periodicTaskStatusChange(periodicTaskId);
 
-DROP TRIGGER IF EXISTS checkPeriodicTaskStatusChange;
-CREATE TRIGGER IF NOT EXISTS checkPeriodicTaskStatusChange
+DROP TRIGGER IF EXISTS periodicTaskStatusChange_checkStatus;
+CREATE TRIGGER IF NOT EXISTS periodicTaskStatusChange_checkStatus
 BEFORE INSERT ON periodicTaskStatusChange
 BEGIN
   SELECT RAISE(FAIL, 'status is already changed')
@@ -34,7 +34,7 @@ BEGIN
 END;
 
 CREATE TABLE IF NOT EXISTS doneTask (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   periodicTaskId INTEGER NOT NULL,
   doneAt TEXT NOT NULL,
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
