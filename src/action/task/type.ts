@@ -50,10 +50,8 @@ export type DoneTask = Readonly<{
 }>;
 export type DoneTaskId = DoneTask["id"];
 
-export type PersistDoneTask = (
-  taskId: PeriodicTaskId,
-  now: Date,
-) => Promise<void>;
+export type PersistDoneTaskParam = Omit<DoneTask, "id" | "name">;
+export type PersistDoneTask = (doneTask: PersistDoneTaskParam) => Promise<void>;
 export type RemoveDoneTask = (taskId: DoneTaskId) => Promise<void>;
 export type FetchDoneTasks = () => Promise<DoneTask[]>;
 
@@ -63,8 +61,12 @@ export type PeriodicTaskStatus =
   | typeof PeriodicTaskStatusOpen
   | typeof PeriodicTaskStatusClose;
 
+export type PeriodicTaskClosedChange = Readonly<{
+  periodicTaskId: number;
+  at: Date;
+  status: PeriodicTaskStatus;
+}>;
+
 export type PerisistPeriodicTaskClosedChange = (
-  taskId: PeriodicTaskId,
-  now: Date,
-  status: PeriodicTaskStatus,
+  change: PeriodicTaskClosedChange,
 ) => Promise<void>;

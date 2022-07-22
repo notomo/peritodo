@@ -25,10 +25,10 @@ export function newPersistPeriodicTask(db: DB): typ.PersistPeriodicTask {
 }
 
 export function newPerisistDoneTask(db: DB): typ.PersistDoneTask {
-  return (id: typ.PeriodicTaskId, now: Date): Promise<void> => {
+  return (doneTask: typ.PersistDoneTaskParam): Promise<void> => {
     sql.insertDoneTask(db, {
-      periodicTaskId: id,
-      doneAt: format(now, timeFormat),
+      periodicTaskId: doneTask.periodicTaskId,
+      doneAt: format(doneTask.doneAt, timeFormat),
     });
     return Promise.resolve();
   };
@@ -40,15 +40,13 @@ export function newPerisistPeriodicTaskStatusChange(
   db: DB,
 ): typ.PerisistPeriodicTaskClosedChange {
   return (
-    id: typ.PeriodicTaskId,
-    now: Date,
-    status: typ.PeriodicTaskStatus,
+    change: typ.PeriodicTaskClosedChange,
   ): Promise<void> => {
     try {
       sql.insertPeriodicTaskStatusChange(db, {
-        periodicTaskId: id,
-        changedAt: format(now, timeFormat),
-        status: status,
+        periodicTaskId: change.periodicTaskId,
+        changedAt: format(change.at, timeFormat),
+        status: change.status,
       });
     } catch (err) {
       if (err instanceof SqliteError && err.message == alreadyChanged) {

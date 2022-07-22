@@ -17,8 +17,8 @@ export async function addPeriodicTask(params: {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persistTask = impl.newPersistPeriodicTask(datastore);
-    await persistTask(task);
+    const persist = impl.newPersistPeriodicTask(datastore);
+    await persist(task);
   } finally {
     teardown();
   }
@@ -26,11 +26,15 @@ export async function addPeriodicTask(params: {
 
 export async function done(_options: void, id: typ.PeriodicTaskId) {
   const now = new Date();
+  const doneTask = {
+    periodicTaskId: id,
+    doneAt: now,
+  };
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const doneTask = impl.newPerisistDoneTask(datastore);
-    await doneTask(id, now);
+    const persist = impl.newPerisistDoneTask(datastore);
+    await persist(doneTask);
   } finally {
     teardown();
   }
@@ -41,11 +45,16 @@ export async function closePeriodicTask(
   id: typ.PeriodicTaskId,
 ) {
   const now = new Date();
+  const change = {
+    periodicTaskId: id,
+    at: now,
+    status: typ.PeriodicTaskStatusClose,
+  };
 
   const [datastore, teardown] = await setupDatastore();
   try {
     const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
-    await persist(id, now, typ.PeriodicTaskStatusClose);
+    await persist(change);
   } finally {
     teardown();
   }
@@ -56,11 +65,16 @@ export async function reopenPeriodicTask(
   id: typ.PeriodicTaskId,
 ) {
   const now = new Date();
+  const change = {
+    periodicTaskId: id,
+    at: now,
+    status: typ.PeriodicTaskStatusOpen,
+  };
 
   const [datastore, teardown] = await setupDatastore();
   try {
     const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
-    await persist(id, now, typ.PeriodicTaskStatusOpen);
+    await persist(change);
   } finally {
     teardown();
   }
