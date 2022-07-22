@@ -1,4 +1,4 @@
-import { extractTables } from "./parse.ts";
+import { extractTables } from "./extract.ts";
 import { generate } from "./generate.ts";
 
 async function main(sqlPath: string, tsPath: string) {

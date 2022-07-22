@@ -6,7 +6,7 @@ import {
   WriterFunction,
   Writers,
 } from "https://deno.land/x/ts_morph@15.1.0/mod.ts";
-import { Column, Table } from "./parse.ts";
+import { Column, Table } from "./extract.ts";
 
 export function generate(path: string, tables: Table[], sql: string) {
   const project = new Project();
