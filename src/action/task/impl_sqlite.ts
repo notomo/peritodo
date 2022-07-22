@@ -1,4 +1,4 @@
-import { DB } from "sqlite";
+import { DB, SqliteError } from "sqlite";
 import { alias, sql } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 import { format, parse } from "datetime";
@@ -34,6 +34,8 @@ export function newPerisistDoneTask(db: DB): typ.PersistDoneTask {
   };
 }
 
+const alreadyChanged = "status is already changed";
+
 export function newPerisistPeriodicTaskStatusChange(
   db: DB,
 ): typ.PerisistPeriodicTaskClosedChange {
@@ -42,11 +44,18 @@ export function newPerisistPeriodicTaskStatusChange(
     now: Date,
     status: typ.PeriodicTaskStatus,
   ): Promise<void> => {
-    sql.insertPeriodicTaskStatusChange(db, {
-      periodicTaskId: id,
-      changedAt: format(now, timeFormat),
-      status: status,
-    });
+    try {
+      sql.insertPeriodicTaskStatusChange(db, {
+        periodicTaskId: id,
+        changedAt: format(now, timeFormat),
+        status: status,
+      });
+    } catch (err) {
+      if (err instanceof SqliteError && err.message == alreadyChanged) {
+        return Promise.resolve();
+      }
+      throw err;
+    }
     return Promise.resolve();
   };
 }
