@@ -12,21 +12,38 @@ function getDataDir(): string {
   return join(xdg.data(), "peritodo");
 }
 
-export async function setupDatastore(): Promise<[DB, Teardown]> {
-  const dataDir = getDataDir();
-  await ensureDir(dataDir);
+type Mode = "file" | "memory";
 
-  const dataPath = join(dataDir, "data.db");
-  const db = new DB(dataPath);
+const setup = {
+  ["file"]: async (): Promise<DB> => {
+    const dataDir = getDataDir();
+    await ensureDir(dataDir);
 
-  db.execute(sql.createTable);
+    const dataPath = join(dataDir, "data.db");
+    return new DB(dataPath);
+  },
+  ["memory"]: (): Promise<DB> => {
+    const db = new DB();
+    return Promise.resolve(db);
+  },
+};
 
-  return [
-    db,
-    () => {
-      db.close();
-    },
-  ];
+export async function setupDatastore(
+  mode: Mode = "file",
+): Promise<[DB, Teardown]> {
+  const db = await setup[mode]();
+  const teardown = () => {
+    db.close();
+  };
+
+  try {
+    db.execute(sql.createTable);
+  } catch (error) {
+    teardown();
+    throw error;
+  }
+
+  return [db, teardown];
 }
 
 export async function clearDatastore(): Promise<void> {

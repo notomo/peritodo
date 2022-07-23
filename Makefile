@@ -31,6 +31,9 @@ check:
 	deno check ${IMPORT_MAP_ARGS} ${MAIN}
 	deno lint
 
+test: build
+	deno test ${IMPORT_MAP_ARGS}
+
 fmt:
 	deno fmt ${IGNORE_FORMAT}
 
