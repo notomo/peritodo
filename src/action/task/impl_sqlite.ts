@@ -16,9 +16,9 @@ export function persistPeriodicTask(
       startAt: format(task.startAt, timeFormat),
       intervalDay: task.intervalDay,
     });
-    sql.insertPeriodicTaskStatusChange(db, {
+    perisistPeriodicTaskStatusChange(db, {
       periodicTaskId: db.lastInsertRowId,
-      changedAt: format(task.startAt, timeFormat),
+      at: task.startAt,
       status: typ.PeriodicTaskStatusOpen,
     });
   });
@@ -48,11 +48,11 @@ export function perisistPeriodicTaskStatusChange(
       changedAt: format(change.at, timeFormat),
       status: change.status,
     });
-  } catch (err) {
-    if (err instanceof SqliteError && err.message == alreadyChanged) {
+  } catch (error) {
+    if (error instanceof SqliteError && error.message == alreadyChanged) {
       return Promise.resolve();
     }
-    throw err;
+    throw error;
   }
   return Promise.resolve();
 }
