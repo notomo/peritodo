@@ -9,20 +9,30 @@ const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 export function persistPeriodicTask(
   db: DB,
   task: typ.PersistPeriodicTaskParam,
-): Promise<void> {
-  db.transaction(() => {
-    sql.insertPeriodicTask(db, {
-      name: task.name,
-      startAt: format(task.startAt, timeFormat),
-      intervalDay: task.intervalDay,
-    });
-    perisistPeriodicTaskStatusChange(db, {
-      periodicTaskId: db.lastInsertRowId,
-      at: task.startAt,
-      status: typ.PeriodicTaskStatusOpen,
+): Promise<typ.PeriodicTask> {
+  return new Promise((resolve) => {
+    db.transaction(() => {
+      sql.insertPeriodicTask(db, {
+        name: task.name,
+        startAt: format(task.startAt, timeFormat),
+        intervalDay: task.intervalDay,
+      });
+
+      const periodicTaskId = db.lastInsertRowId;
+      perisistPeriodicTaskStatusChange(db, {
+        periodicTaskId: periodicTaskId,
+        at: task.startAt,
+        status: typ.PeriodicTaskStatusOpen,
+      });
+
+      resolve({
+        id: periodicTaskId,
+        name: task.name,
+        startAt: task.startAt,
+        intervalDay: task.intervalDay,
+      });
     });
   });
-  return Promise.resolve();
 }
 
 export function perisistDoneTask(

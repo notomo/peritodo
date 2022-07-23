@@ -6,21 +6,14 @@ Deno.test("fetchPeriodicTasks", async (t) => {
   await t.step(
     "can fetch a new periodicTask",
     withDB(async (db) => {
-      const param = {
+      const want = await impl.persistPeriodicTask(db, {
         name: "name",
         startAt: new Date(),
         intervalDay: 1,
-      };
-      await impl.persistPeriodicTask(db, param);
+      });
 
       const got = await impl.fetchPeriodicTasks(db);
 
-      const want = {
-        id: 1,
-        name: param.name,
-        startAt: param.startAt,
-        intervalDay: param.intervalDay,
-      };
       assertObjectMatch(got[0], want);
     }),
   );
