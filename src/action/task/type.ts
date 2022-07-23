@@ -34,13 +34,6 @@ export type PersistPeriodicTaskParam = Omit<
   PeriodicTask,
   "id" | "recentDoneAt"
 >;
-export type PersistPeriodicTask = (
-  task: PersistPeriodicTaskParam,
-) => Promise<void>;
-
-export type RemovePeriodicTask = (taskId: PeriodicTaskId) => Promise<void>;
-
-export type FetchPeriodicTasks = () => Promise<PeriodicTask[]>;
 
 export type DoneTask = Readonly<{
   id: number;
@@ -51,9 +44,6 @@ export type DoneTask = Readonly<{
 export type DoneTaskId = DoneTask["id"];
 
 export type PersistDoneTaskParam = Omit<DoneTask, "id" | "name">;
-export type PersistDoneTask = (doneTask: PersistDoneTaskParam) => Promise<void>;
-export type RemoveDoneTask = (taskId: DoneTaskId) => Promise<void>;
-export type FetchDoneTasks = () => Promise<DoneTask[]>;
 
 export const PeriodicTaskStatusOpen = "open" as const;
 export const PeriodicTaskStatusClose = "close" as const;
@@ -66,7 +56,3 @@ export type PeriodicTaskClosedChange = Readonly<{
   at: Date;
   status: PeriodicTaskStatus;
 }>;
-
-export type PerisistPeriodicTaskClosedChange = (
-  change: PeriodicTaskClosedChange,
-) => Promise<void>;

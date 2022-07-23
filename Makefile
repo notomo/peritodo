@@ -3,10 +3,11 @@ MAIN:=src/main.ts
 IMPORT_MAP_ARGS:=--importmap import_map.json
 DENO_ARGS:= ${IMPORT_MAP_ARGS} --allow-env --allow-read --allow-write ${MAIN}
 
+GENERATE_MAIN:=./script/generate_sql/main.ts
 CREATE_TABLE_SQL:=./src/datastore/sqlite/table.sql
 GENERATED_SQL_TS:=./src/datastore/sqlite/gen_sql.ts
 $(GENERATED_SQL_TS): $(CREATE_TABLE_SQL) ./script/generate_sql/*
-	deno run --allow-read --allow-write ./script/generate_sql/main.ts ${CREATE_TABLE_SQL} ${GENERATED_SQL_TS}
+	deno run --allow-read --allow-write ${GENERATE_MAIN} ${CREATE_TABLE_SQL} ${GENERATED_SQL_TS}
 	deno fmt ${GENERATED_SQL_TS}
 
 build: $(GENERATED_SQL_TS)
@@ -25,6 +26,7 @@ install: build
 
 IGNORE_FORMAT:=--ignore=${OUTPUT_PATH}
 check:
+	deno check ${GENERATE_MAIN}
 	deno fmt ${IGNORE_FORMAT} --check
 	deno check ${IMPORT_MAP_ARGS} ${MAIN}
 	deno lint

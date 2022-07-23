@@ -17,8 +17,7 @@ export async function addPeriodicTask(params: {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persist = impl.newPersistPeriodicTask(datastore);
-    await persist(task);
+    await impl.persistPeriodicTask(datastore, task);
   } finally {
     teardown();
   }
@@ -33,8 +32,7 @@ export async function done(_options: void, id: typ.PeriodicTaskId) {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persist = impl.newPerisistDoneTask(datastore);
-    await persist(doneTask);
+    await impl.perisistDoneTask(datastore, doneTask);
   } finally {
     teardown();
   }
@@ -53,8 +51,7 @@ export async function closePeriodicTask(
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
-    await persist(change);
+    await impl.perisistPeriodicTaskStatusChange(datastore, change);
   } finally {
     teardown();
   }
@@ -73,8 +70,7 @@ export async function reopenPeriodicTask(
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const persist = impl.newPerisistPeriodicTaskStatusChange(datastore);
-    await persist(change);
+    await impl.perisistPeriodicTaskStatusChange(datastore, change);
   } finally {
     teardown();
   }
@@ -86,8 +82,7 @@ export async function removePeriodicTask(
 ) {
   const [datastore, teardown] = await setupDatastore();
   try {
-    const remove = impl.newRemovePeriodicTask(datastore);
-    await remove(id);
+    await impl.removePeriodicTask(datastore, id);
   } finally {
     teardown();
   }
@@ -96,8 +91,7 @@ export async function removePeriodicTask(
 export async function undone(_options: void, id: typ.DoneTaskId) {
   const [datastore, teardown] = await setupDatastore();
   try {
-    const remove = impl.newRemoveDoneTask(datastore);
-    await remove(id);
+    await impl.removeDoneTask(datastore, id);
   } finally {
     teardown();
   }
@@ -109,8 +103,7 @@ export async function listPeriodicTasks() {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const fetchTask = impl.newFetchPeriodicTask(datastore);
-    const tasks = await fetchTask();
+    const tasks = await impl.fetchPeriodicTasks(datastore);
     await view.listPeriodicTasks(tasks, write, now);
   } finally {
     teardown();
@@ -122,8 +115,7 @@ export async function listDoneTasks() {
 
   const [datastore, teardown] = await setupDatastore();
   try {
-    const fetchDoneTask = impl.newFetchDoneTask(datastore);
-    const doneTasks = await fetchDoneTask();
+    const doneTasks = await impl.fetchDoneTasks(datastore);
     await view.listDoneTasks(doneTasks, write);
   } finally {
     teardown();

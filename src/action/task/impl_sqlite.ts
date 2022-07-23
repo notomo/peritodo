@@ -6,83 +6,83 @@ import { ensureNumber, ensureString, isString } from "unknownutil";
 
 const timeFormat = "yyyy-MM-ddTHH:mm:ss.SSS";
 
-export function newPersistPeriodicTask(db: DB): typ.PersistPeriodicTask {
-  return (task: typ.PersistPeriodicTaskParam): Promise<void> => {
-    db.transaction(() => {
-      sql.insertPeriodicTask(db, {
-        name: task.name,
-        startAt: format(task.startAt, timeFormat),
-        intervalDay: task.intervalDay,
-      });
-      sql.insertPeriodicTaskStatusChange(db, {
-        periodicTaskId: db.lastInsertRowId,
-        changedAt: format(task.startAt, timeFormat),
-        status: typ.PeriodicTaskStatusOpen,
-      });
+export function persistPeriodicTask(
+  db: DB,
+  task: typ.PersistPeriodicTaskParam,
+): Promise<void> {
+  db.transaction(() => {
+    sql.insertPeriodicTask(db, {
+      name: task.name,
+      startAt: format(task.startAt, timeFormat),
+      intervalDay: task.intervalDay,
     });
-    return Promise.resolve();
-  };
+    sql.insertPeriodicTaskStatusChange(db, {
+      periodicTaskId: db.lastInsertRowId,
+      changedAt: format(task.startAt, timeFormat),
+      status: typ.PeriodicTaskStatusOpen,
+    });
+  });
+  return Promise.resolve();
 }
 
-export function newPerisistDoneTask(db: DB): typ.PersistDoneTask {
-  return (doneTask: typ.PersistDoneTaskParam): Promise<void> => {
-    sql.insertDoneTask(db, {
-      periodicTaskId: doneTask.periodicTaskId,
-      doneAt: format(doneTask.doneAt, timeFormat),
-    });
-    return Promise.resolve();
-  };
+export function perisistDoneTask(
+  db: DB,
+  doneTask: typ.PersistDoneTaskParam,
+): Promise<void> {
+  sql.insertDoneTask(db, {
+    periodicTaskId: doneTask.periodicTaskId,
+    doneAt: format(doneTask.doneAt, timeFormat),
+  });
+  return Promise.resolve();
 }
 
 const alreadyChanged = "status is already changed";
 
-export function newPerisistPeriodicTaskStatusChange(
+export function perisistPeriodicTaskStatusChange(
   db: DB,
-): typ.PerisistPeriodicTaskClosedChange {
-  return (
-    change: typ.PeriodicTaskClosedChange,
-  ): Promise<void> => {
-    try {
-      sql.insertPeriodicTaskStatusChange(db, {
-        periodicTaskId: change.periodicTaskId,
-        changedAt: format(change.at, timeFormat),
-        status: change.status,
-      });
-    } catch (err) {
-      if (err instanceof SqliteError && err.message == alreadyChanged) {
-        return Promise.resolve();
-      }
-      throw err;
+  change: typ.PeriodicTaskClosedChange,
+): Promise<void> {
+  try {
+    sql.insertPeriodicTaskStatusChange(db, {
+      periodicTaskId: change.periodicTaskId,
+      changedAt: format(change.at, timeFormat),
+      status: change.status,
+    });
+  } catch (err) {
+    if (err instanceof SqliteError && err.message == alreadyChanged) {
+      return Promise.resolve();
     }
-    return Promise.resolve();
-  };
+    throw err;
+  }
+  return Promise.resolve();
 }
 
-export function newRemovePeriodicTask(db: DB): typ.RemovePeriodicTask {
-  return (id: typ.PeriodicTaskId): Promise<void> => {
-    sql.deletePeriodicTask(db, { id: id });
-    return Promise.resolve();
-  };
+export function removePeriodicTask(
+  db: DB,
+  id: typ.PeriodicTaskId,
+): Promise<void> {
+  sql.deletePeriodicTask(db, { id: id });
+  return Promise.resolve();
 }
 
-export function newRemoveDoneTask(db: DB): typ.RemoveDoneTask {
-  return (id: typ.DoneTaskId): Promise<void> => {
-    sql.deleteDoneTask(db, { id: id });
-    return Promise.resolve();
-  };
+export function removeDoneTask(
+  db: DB,
+  id: typ.DoneTaskId,
+): Promise<void> {
+  sql.deleteDoneTask(db, { id: id });
+  return Promise.resolve();
 }
 
 const T = sql.tables;
 const C = sql.columns;
 
-export function newFetchPeriodicTask(db: DB): typ.FetchPeriodicTasks {
-  return (): Promise<typ.PeriodicTask[]> => {
-    const A = {
-      doneTask: "anotherDoneTask",
-      periodicTaskStatusChange: "anotherPeriodicTaskStatusChange",
-    };
+export function fetchPeriodicTasks(db: DB): Promise<typ.PeriodicTask[]> {
+  const A = {
+    doneTask: "anotherDoneTask",
+    periodicTaskStatusChange: "anotherPeriodicTaskStatusChange",
+  };
 
-    const selectQuery = `
+  const selectQuery = `
 SELECT
   ${C.periodicTask.id}
   ,${C.periodicTask.name}
@@ -102,40 +102,38 @@ LEFT JOIN ${T.periodicTaskStatusChange} ON ${C.periodicTaskStatusChange.periodic
     SELECT 1
     FROM ${T.periodicTaskStatusChange} ${A.periodicTaskStatusChange}
     WHERE ${
-      alias(A.periodicTaskStatusChange, C.periodicTaskStatusChange.changedAt)
-    } > ${C.periodicTaskStatusChange.changedAt}
+    alias(A.periodicTaskStatusChange, C.periodicTaskStatusChange.changedAt)
+  } > ${C.periodicTaskStatusChange.changedAt}
   )
 `;
 
-    const tasks = [];
-    for (
-      const [
-        id,
-        name,
-        startAt,
-        intervalDay,
-        doneAt,
-        status,
-      ] of db.query(selectQuery)
-    ) {
-      if (status === typ.PeriodicTaskStatusClose) {
-        continue;
-      }
-      tasks.push({
-        id: ensureNumber(id),
-        name: ensureString(name),
-        startAt: parse(ensureString(startAt), timeFormat),
-        intervalDay: ensureNumber(intervalDay),
-        recentDoneAt: isString(doneAt) ? parse(doneAt, timeFormat) : undefined,
-      });
+  const tasks = [];
+  for (
+    const [
+      id,
+      name,
+      startAt,
+      intervalDay,
+      doneAt,
+      status,
+    ] of db.query(selectQuery)
+  ) {
+    if (status === typ.PeriodicTaskStatusClose) {
+      continue;
     }
-    return Promise.resolve(tasks);
-  };
+    tasks.push({
+      id: ensureNumber(id),
+      name: ensureString(name),
+      startAt: parse(ensureString(startAt), timeFormat),
+      intervalDay: ensureNumber(intervalDay),
+      recentDoneAt: isString(doneAt) ? parse(doneAt, timeFormat) : undefined,
+    });
+  }
+  return Promise.resolve(tasks);
 }
 
-export function newFetchDoneTask(db: DB): typ.FetchDoneTasks {
-  return (): Promise<typ.DoneTask[]> => {
-    const selectQuery = `
+export function fetchDoneTasks(db: DB): Promise<typ.DoneTask[]> {
+  const selectQuery = `
 SELECT
   ${C.doneTask.id}
   ,${C.doneTask.periodicTaskId}
@@ -145,22 +143,21 @@ FROM ${T.doneTask}
 INNER JOIN ${T.periodicTask} ON ${C.periodicTask.id} = ${C.doneTask.periodicTaskId}
 `;
 
-    const doneTasks = [];
-    for (
-      const [
-        id,
-        periodicTaskId,
-        doneAt,
-        name,
-      ] of db.query(selectQuery)
-    ) {
-      doneTasks.push({
-        id: ensureNumber(id),
-        periodicTaskId: ensureNumber(periodicTaskId),
-        name: ensureString(name),
-        doneAt: parse(ensureString(doneAt), timeFormat),
-      });
-    }
-    return Promise.resolve(doneTasks);
-  };
+  const doneTasks = [];
+  for (
+    const [
+      id,
+      periodicTaskId,
+      doneAt,
+      name,
+    ] of db.query(selectQuery)
+  ) {
+    doneTasks.push({
+      id: ensureNumber(id),
+      periodicTaskId: ensureNumber(periodicTaskId),
+      name: ensureString(name),
+      doneAt: parse(ensureString(doneAt), timeFormat),
+    });
+  }
+  return Promise.resolve(doneTasks);
 }
