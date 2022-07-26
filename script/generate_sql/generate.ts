@@ -147,7 +147,10 @@ function generateOne(table: Table): StatementStructures[] {
       kind: StructureKind.TypeAlias,
       isExported: true,
       name: insertParamsName,
-      type: Writers.object(Object.fromEntries(insertObject)),
+      type: typeParamed(
+        "Readonly",
+        Writers.object(Object.fromEntries(insertObject)),
+      ),
       leadingTrivia: "\n",
     },
     {
@@ -166,7 +169,13 @@ function generateOne(table: Table): StatementStructures[] {
       kind: StructureKind.TypeAlias,
       isExported: true,
       name: deleteParamsName,
-      type: Writers.object(Object.fromEntries(deleteObject)),
+      type: typeParamed(
+        "Partial",
+        typeParamed(
+          "Readonly",
+          Writers.object(Object.fromEntries(deleteObject)),
+        ),
+      ),
     },
     {
       kind: StructureKind.Function,
@@ -174,7 +183,7 @@ function generateOne(table: Table): StatementStructures[] {
       name: `delete${capitalized}`,
       parameters: [
         { name: "db", type: "DB" },
-        { name: "params", type: `Partial<${deleteParamsName}>` },
+        { name: "params", type: deleteParamsName },
       ],
       statements: (writer) => {
         writer.writeLine(`const condition = asConditionPart(params)`);
@@ -202,4 +211,15 @@ ${indent}${intoColumns}
 ${indent}${valuesColumns}
 )`;
   return query;
+}
+
+function typeParamed(
+  name: string,
+  param: WriterFunction,
+): WriterFunction {
+  return (writer) => {
+    writer.write(`${name}<`);
+    param(writer);
+    writer.write(">");
+  };
 }

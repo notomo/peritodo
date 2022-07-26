@@ -83,11 +83,11 @@ export type AllColumns =
   | "doneTask.periodicTaskId"
   | "doneTask.doneAt";
 
-export type InsertPeriodicTaskParams = {
+export type InsertPeriodicTaskParams = Readonly<{
   name: string;
   startAt: string;
   intervalDay: number;
-};
+}>;
 
 export function insertPeriodicTask(db: DB, params: InsertPeriodicTaskParams) {
   db.query(
@@ -105,27 +105,26 @@ INSERT INTO periodicTask (
   );
 }
 
-export type DeletePeriodicTaskParams = {
-  id: number;
-  name: string;
-  startAt: string;
-  intervalDay: number;
-};
+export type DeletePeriodicTaskParams = Partial<
+  Readonly<{
+    id: number;
+    name: string;
+    startAt: string;
+    intervalDay: number;
+  }>
+>;
 
-export function deletePeriodicTask(
-  db: DB,
-  params: Partial<DeletePeriodicTaskParams>,
-) {
+export function deletePeriodicTask(db: DB, params: DeletePeriodicTaskParams) {
   const condition = asConditionPart(params);
   const query = `DELETE FROM periodicTask WHERE ${condition}`;
   db.query(query, params);
 }
 
-export type InsertPeriodicTaskStatusChangeParams = {
+export type InsertPeriodicTaskStatusChangeParams = Readonly<{
   periodicTaskId: number;
   changedAt: string;
   status: string;
-};
+}>;
 
 export function insertPeriodicTaskStatusChange(
   db: DB,
@@ -146,25 +145,27 @@ INSERT INTO periodicTaskStatusChange (
   );
 }
 
-export type DeletePeriodicTaskStatusChangeParams = {
-  periodicTaskId: number;
-  changedAt: string;
-  status: string;
-};
+export type DeletePeriodicTaskStatusChangeParams = Partial<
+  Readonly<{
+    periodicTaskId: number;
+    changedAt: string;
+    status: string;
+  }>
+>;
 
 export function deletePeriodicTaskStatusChange(
   db: DB,
-  params: Partial<DeletePeriodicTaskStatusChangeParams>,
+  params: DeletePeriodicTaskStatusChangeParams,
 ) {
   const condition = asConditionPart(params);
   const query = `DELETE FROM periodicTaskStatusChange WHERE ${condition}`;
   db.query(query, params);
 }
 
-export type InsertDoneTaskParams = {
+export type InsertDoneTaskParams = Readonly<{
   periodicTaskId: number;
   doneAt: string;
-};
+}>;
 
 export function insertDoneTask(db: DB, params: InsertDoneTaskParams) {
   db.query(
@@ -180,13 +181,15 @@ INSERT INTO doneTask (
   );
 }
 
-export type DeleteDoneTaskParams = {
-  id: number;
-  periodicTaskId: number;
-  doneAt: string;
-};
+export type DeleteDoneTaskParams = Partial<
+  Readonly<{
+    id: number;
+    periodicTaskId: number;
+    doneAt: string;
+  }>
+>;
 
-export function deleteDoneTask(db: DB, params: Partial<DeleteDoneTaskParams>) {
+export function deleteDoneTask(db: DB, params: DeleteDoneTaskParams) {
   const condition = asConditionPart(params);
   const query = `DELETE FROM doneTask WHERE ${condition}`;
   db.query(query, params);
