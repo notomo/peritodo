@@ -55,7 +55,7 @@ function generateForAll(
     {
       kind: StructureKind.ImportDeclaration,
       namedImports: ["DB"],
-      moduleSpecifier: "sqlite",
+      moduleSpecifier: "./db.ts",
     },
     {
       kind: StructureKind.ImportDeclaration,

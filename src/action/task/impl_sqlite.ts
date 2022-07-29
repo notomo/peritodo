@@ -1,5 +1,4 @@
-import { DB, SqliteError } from "sqlite";
-import { alias, sql } from "/datastore/sqlite/mod.ts";
+import { alias, DB, sql, SqliteError } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 import { format, parse } from "datetime";
 import { ensureNumber, ensureString, isString } from "unknownutil";

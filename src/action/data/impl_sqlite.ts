@@ -1,5 +1,4 @@
-import { DB } from "sqlite";
-import { sql } from "/datastore/sqlite/mod.ts";
+import { DB, sql } from "/datastore/sqlite/mod.ts";
 import * as typ from "./type.ts";
 
 function fetchTable(db: DB, tableName: typ.TableName): typ.Table {

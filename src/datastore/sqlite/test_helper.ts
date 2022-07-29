@@ -1,5 +1,4 @@
-import { setupDatastore } from "/datastore/sqlite/mod.ts";
-import { DB } from "sqlite";
+import { DB, setupDatastore } from "/datastore/sqlite/mod.ts";
 
 type Test = (db: DB) => Promise<void>;
 

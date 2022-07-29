@@ -1,7 +1,9 @@
 import { join } from "path";
 import { ensureDir } from "fs";
 import xdg from "xdg";
-import { DB } from "sqlite";
+import { DB } from "./db.ts";
+export { DB } from "./db.ts";
+export { SqliteError } from "sqlite";
 import * as sql from "./gen_sql.ts";
 export * as sql from "./gen_sql.ts";
 export { alias } from "./select.ts";

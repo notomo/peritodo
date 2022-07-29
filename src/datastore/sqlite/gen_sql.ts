@@ -1,4 +1,4 @@
-import { DB } from "sqlite";
+import { DB } from "./db.ts";
 import { asConditionPart } from "./builder.ts";
 
 export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
