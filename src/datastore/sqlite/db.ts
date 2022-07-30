@@ -1,10 +1,11 @@
 import * as sqlite from "sqlite";
 
-type QueryHook<P extends sqlite.QueryParameterSet = sqlite.QueryParameterSet> =
-  (
-    sql: string,
-    params?: P,
-  ) => void;
+type QueryHook<P extends QueryParameterSet = QueryParameterSet> = (
+  sql: string,
+  params?: P,
+) => void;
+
+export type QueryParameterSet = Record<string, sqlite.QueryParameter>;
 
 export class DB {
   private readonly db: sqlite.DB;
@@ -21,7 +22,7 @@ export class DB {
 
   query<R extends sqlite.Row = sqlite.Row>(
     sql: string,
-    params?: sqlite.QueryParameterSet,
+    params?: QueryParameterSet,
   ): Array<R> {
     this.beforeHook(sql, params);
     return this.db.query(sql, params);
@@ -29,7 +30,7 @@ export class DB {
 
   queryEntries<O extends sqlite.RowObject = sqlite.RowObject>(
     sql: string,
-    params?: sqlite.QueryParameterSet,
+    params?: QueryParameterSet,
   ): Array<O> {
     this.beforeHook(sql, params);
     return this.queryEntries(sql, params);
@@ -38,7 +39,7 @@ export class DB {
   prepareQuery<
     R extends sqlite.Row = sqlite.Row,
     O extends sqlite.RowObject = sqlite.RowObject,
-    P extends sqlite.QueryParameterSet = sqlite.QueryParameterSet,
+    P extends QueryParameterSet = QueryParameterSet,
   >(
     sql: string,
   ): PreparedQuery<R, O, P> {
@@ -68,7 +69,7 @@ export class DB {
 export class PreparedQuery<
   R extends sqlite.Row = sqlite.Row,
   O extends sqlite.RowObject = sqlite.RowObject,
-  P extends sqlite.QueryParameterSet = sqlite.QueryParameterSet,
+  P extends QueryParameterSet = QueryParameterSet,
 > {
   constructor(
     private readonly sql: string,

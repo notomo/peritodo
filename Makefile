@@ -32,7 +32,7 @@ check:
 	deno lint
 
 test: build
-	deno test ${IMPORT_MAP_ARGS}
+	deno test ${IMPORT_MAP_ARGS} --allow-env
 
 fmt:
 	deno fmt ${IGNORE_FORMAT}

@@ -204,8 +204,7 @@ function insertQuery(table: Table, columns: Column[]) {
   const valuesColumns = columns.map((column) => {
     return `:${column.name}`;
   }).join(`\n${indent},`);
-  const query = `
-INSERT INTO ${table.name} (
+  const query = `INSERT INTO ${table.name} (
 ${indent}${intoColumns}
 ) VALUES (
 ${indent}${valuesColumns}

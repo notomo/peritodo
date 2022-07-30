@@ -7,6 +7,7 @@ export { SqliteError } from "sqlite";
 import * as sql from "./gen_sql.ts";
 export * as sql from "./gen_sql.ts";
 export { alias } from "./select.ts";
+import { loggerFunction } from "./query_log.ts";
 
 type Teardown = () => void;
 
@@ -22,10 +23,10 @@ const setup = {
     await ensureDir(dataDir);
 
     const dataPath = join(dataDir, "data.db");
-    return new DB(dataPath);
+    return new DB(dataPath, undefined, loggerFunction);
   },
   ["memory"]: (): Promise<DB> => {
-    const db = new DB();
+    const db = new DB(undefined, undefined, loggerFunction);
     return Promise.resolve(db);
   },
 };

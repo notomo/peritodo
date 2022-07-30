@@ -91,8 +91,7 @@ export type InsertPeriodicTaskParams = Readonly<{
 
 export function insertPeriodicTask(db: DB, params: InsertPeriodicTaskParams) {
   db.query(
-    `
-INSERT INTO periodicTask (
+    `INSERT INTO periodicTask (
   name
   ,startAt
   ,intervalDay
@@ -131,8 +130,7 @@ export function insertPeriodicTaskStatusChange(
   params: InsertPeriodicTaskStatusChangeParams,
 ) {
   db.query(
-    `
-INSERT INTO periodicTaskStatusChange (
+    `INSERT INTO periodicTaskStatusChange (
   periodicTaskId
   ,changedAt
   ,status
@@ -169,8 +167,7 @@ export type InsertDoneTaskParams = Readonly<{
 
 export function insertDoneTask(db: DB, params: InsertDoneTaskParams) {
   db.query(
-    `
-INSERT INTO doneTask (
+    `INSERT INTO doneTask (
   periodicTaskId
   ,doneAt
 ) VALUES (

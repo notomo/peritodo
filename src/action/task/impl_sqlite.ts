@@ -91,8 +91,7 @@ export function fetchPeriodicTasks(db: DB): Promise<typ.PeriodicTask[]> {
     periodicTaskStatusChange: "anotherPeriodicTaskStatusChange",
   };
 
-  const selectQuery = `
-SELECT
+  const selectQuery = `SELECT
   ${C.periodicTask.id}
   ,${C.periodicTask.name}
   ,${C.periodicTask.startAt}
@@ -113,8 +112,7 @@ LEFT JOIN ${T.periodicTaskStatusChange} ON ${C.periodicTaskStatusChange.periodic
     WHERE ${
     alias(A.periodicTaskStatusChange, C.periodicTaskStatusChange.changedAt)
   } > ${C.periodicTaskStatusChange.changedAt}
-  )
-`;
+  )`;
 
   const tasks = [];
   for (
@@ -142,15 +140,13 @@ LEFT JOIN ${T.periodicTaskStatusChange} ON ${C.periodicTaskStatusChange.periodic
 }
 
 export function fetchDoneTasks(db: DB): Promise<typ.DoneTask[]> {
-  const selectQuery = `
-SELECT
+  const selectQuery = `SELECT
   ${C.doneTask.id}
   ,${C.doneTask.periodicTaskId}
   ,${C.doneTask.doneAt}
   ,${C.periodicTask.name}
 FROM ${T.doneTask}
-INNER JOIN ${T.periodicTask} ON ${C.periodicTask.id} = ${C.doneTask.periodicTaskId}
-`;
+INNER JOIN ${T.periodicTask} ON ${C.periodicTask.id} = ${C.doneTask.periodicTaskId}`;
 
   const doneTasks = [];
   for (
