@@ -6,7 +6,11 @@ import {
   WriterFunction,
   Writers,
 } from "https://deno.land/x/ts_morph@15.1.0/mod.ts";
-import { Column, Table } from "./extract.ts";
+import {
+  Column,
+  ColumnTypeAffinity,
+  Table,
+} from "https://deno.land/x/sqlite_schema@0.0.1/mod.ts";
 
 export function generate(path: string, tables: Table[], sql: string) {
   const project = new Project();
@@ -120,6 +124,14 @@ function capitalize(tableName: string): string {
   return tableName[0].toUpperCase() + tableName.slice(1);
 }
 
+const columnTypes: { [K in ColumnTypeAffinity]: string } = {
+  INTEGER: "number",
+  REAL: "number",
+  NUMERIC: "number",
+  TEXT: "string",
+  BLOB: "Uint8Array",
+};
+
 function generateOne(table: Table): StatementStructures[] {
   const columnsExceptAutoIncrement = table.columns.filter((column) => {
     return !column.isAutoIncrement;
@@ -127,7 +139,7 @@ function generateOne(table: Table): StatementStructures[] {
   const insertObject = new Map<string, WriterFunction>();
   for (const column of columnsExceptAutoIncrement) {
     insertObject.set(column.name, (writer) => {
-      writer.write(column.type);
+      writer.write(columnTypes[column.typeAffinity]);
     });
   }
   const capitalized = capitalize(table.name);
@@ -137,7 +149,7 @@ function generateOne(table: Table): StatementStructures[] {
   const deleteObject = new Map<string, WriterFunction>();
   for (const column of table.columns) {
     deleteObject.set(column.name, (writer) => {
-      writer.write(column.type);
+      writer.write(columnTypes[column.typeAffinity]);
     });
   }
   const deleteParamsName = `Delete${capitalized}Params`;
