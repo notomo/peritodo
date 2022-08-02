@@ -14,20 +14,57 @@ export type PeriodicTaskAt =
   | PeriodicTask["startAt"]
   | PeriodicTask["recentDoneAt"];
 
-export function nextDate(periodicTask: PeriodicTask, now: Date): Date {
-  const diff = difference(
-    periodicTask.startAt,
-    periodicTask.recentDoneAt || now,
-    {
-      units: ["days"],
-    },
+function addDay(date: Date, day: number): Date {
+  const d = new Date(date.getTime());
+  d.setDate(d.getDate() + day);
+  return d;
+}
+
+function isInRange(range: [Date, Date], at?: Date) {
+  if (at === undefined) {
+    return false;
+  }
+  return range[0] <= at && at < range[1];
+}
+
+function makeCurrentRange(
+  startAt: Date,
+  now: Date,
+  intervalDay: number,
+): [Date, Date] {
+  const diffDay = ensureNumber(
+    difference(startAt, now, { units: ["days"] }).days,
   );
-  const elapsed = ensureNumber(diff.days);
-  const remain = periodicTask.intervalDay -
-    (elapsed % periodicTask.intervalDay);
-  const date = new Date(now.getTime());
-  date.setDate(date.getDate() + remain);
-  return date;
+  const elapsedDay = Math.floor(diffDay / intervalDay);
+  const start = addDay(startAt, intervalDay * elapsedDay);
+  const end = addDay(start, intervalDay);
+  return [start, end];
+}
+
+function slideRange(range: [Date, Date]): [Date, Date] {
+  const intervalDay = ensureNumber(
+    difference(range[0], range[1], { units: ["days"] })
+      .days,
+  );
+  const start = addDay(range[0], intervalDay);
+  const end = addDay(start, intervalDay);
+  return [start, end];
+}
+
+export function nextDate(periodicTask: PeriodicTask, now: Date): Date {
+  const range = makeCurrentRange(
+    periodicTask.startAt,
+    now,
+    periodicTask.intervalDay,
+  );
+  if (isInRange(range, periodicTask.recentDoneAt)) {
+    return slideRange(range)[1];
+  }
+  const nextRange = isInRange(range, periodicTask.recentDoneAt)
+    ? slideRange(range)
+    : range;
+  const end = nextRange[1];
+  return end;
 }
 
 export type PersistPeriodicTaskParam = Omit<
