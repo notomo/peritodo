@@ -10,7 +10,7 @@ import {
   Column,
   ColumnTypeAffinity,
   Table,
-} from "https://deno.land/x/sqlite_schema@0.0.1/mod.ts";
+} from "https://deno.land/x/sqlite_schema@0.0.2/mod.ts";
 
 export function generate(path: string, tables: Table[], sql: string) {
   const project = new Project();
