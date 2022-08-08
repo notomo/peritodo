@@ -6,14 +6,31 @@ export function asConditionPart(params: Record<string, unknown>) {
 
 type RecordValue = string | number;
 
+export function asIntoAndValues<T = Record<string, RecordValue>>(
+  paramsList: T[],
+  allColumns: string[],
+): [string, string, Record<string, RecordValue>] {
+  const [values, params] = asIntoValues(paramsList, allColumns);
+  const keys = Object.keys(paramsList[0]);
+  const columns = allColumns.filter((e) => {
+    return keys.includes(e);
+  }).join(", ");
+  return [
+    `(${columns})`,
+    values,
+    params,
+  ];
+}
+
 export function asIntoValues<T = Record<string, RecordValue>>(
   paramsList: T[],
+  allColumns: string[],
 ): [string, Record<string, RecordValue>] {
   let i = 0;
   const allValues = [];
   let allParams = {};
   for (const params of paramsList) {
-    const [values, indexedParams] = asOneIntoValues(params, i);
+    const [values, indexedParams] = asOneIntoValues(params, allColumns, i);
     allValues.push(values);
     allParams = { ...allParams, ...indexedParams };
     i++;
@@ -26,16 +43,23 @@ export function asIntoValues<T = Record<string, RecordValue>>(
 
 function asOneIntoValues<T = Record<string, RecordValue>>(
   params: T,
+  allColumns: string[],
   index: number,
 ): [string, Record<string, RecordValue>] {
-  const keys = [];
   const indexedParams: Record<string, RecordValue> = {};
   for (const [key, value] of Object.entries(params)) {
-    const indexedKey = `${index}_${key}`;
-    keys.push(indexedKey);
-    indexedParams[indexedKey] = value;
+    indexedParams[`${index}_${key}`] = value;
   }
-  const values = keys.map((key) => `:${key}`).join(", ");
+  const keys = Object.keys(params);
+  const values = allColumns
+    .filter((e) => {
+      return keys.includes(e);
+    })
+    .map((e) => {
+      return `:${index}_${e}`;
+    })
+    .join(", ");
+
   return [
     `(${values})`,
     indexedParams,

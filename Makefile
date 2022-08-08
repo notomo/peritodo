@@ -1,7 +1,7 @@
 CMD_NAME:=$(basename $(notdir $(abspath .)))
 MAIN:=src/main.ts
 IMPORT_MAP_ARGS:=--importmap import_map.json
-DENO_ARGS:= ${IMPORT_MAP_ARGS} --allow-env --allow-read --allow-write ${MAIN}
+DENO_ARGS:= ${IMPORT_MAP_ARGS} --allow-env --allow-read --allow-write --allow-run ${MAIN}
 
 GENERATE_MAIN:=./script/generate_sql/main.ts
 CREATE_TABLE_SQL:=./src/datastore/sqlite/table.sql
@@ -16,6 +16,9 @@ start: build
 	deno run ${DENO_ARGS} task list
 	@echo "\n"
 	deno run ${DENO_ARGS} done_task list
+
+edit:
+	deno run ${DENO_ARGS} task edit
 
 ARGS:=task add --name=example --interval-day=15
 run: build

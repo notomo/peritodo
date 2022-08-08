@@ -28,7 +28,9 @@ async function main() {
         .action(taskActions.reopenPeriodicTask)
         .command("remove")
         .arguments("<id:number>")
-        .action(taskActions.removePeriodicTask),
+        .action(taskActions.removePeriodicTask)
+        .command("edit")
+        .action(taskActions.editPeriodicTasks),
     )
     .command(
       "done_task",

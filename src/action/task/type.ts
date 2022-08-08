@@ -9,6 +9,8 @@ export type PeriodicTask = Readonly<{
   recentDoneAt?: Date;
 }>;
 
+export type EditedPeriodicTask = Omit<PeriodicTask, "startAt" | "recentDoneAt">;
+
 export type PeriodicTaskId = PeriodicTask["id"];
 export type PeriodicTaskAt =
   | PeriodicTask["startAt"]

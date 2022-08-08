@@ -166,3 +166,21 @@ INNER JOIN ${T.periodicTask} ON ${C.periodicTask.id} = ${C.doneTask.periodicTask
   }
   return Promise.resolve(doneTasks);
 }
+
+export function replacePeriodicTasks(
+  db: DB,
+  newTasks: typ.EditedPeriodicTask[],
+  oldTasks: typ.PeriodicTask[],
+): Promise<void> {
+  // TODO id matching
+  let i = -1;
+  const tasks = newTasks.map((e) => {
+    i++;
+    return {
+      ...e,
+      startAt: format(oldTasks[i].startAt, timeFormat),
+    };
+  });
+  sql.replacePeriodicTask(db, ...tasks);
+  return Promise.resolve();
+}

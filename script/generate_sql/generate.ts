@@ -62,7 +62,7 @@ function generateForAll(
     },
     {
       kind: StructureKind.ImportDeclaration,
-      namedImports: ["asConditionPart", "asIntoValues"],
+      namedImports: ["asConditionPart", "asIntoValues", "asIntoAndValues"],
       moduleSpecifier: "./builder.ts",
     },
     {
@@ -144,6 +144,16 @@ function generateOne(table: Table): StatementStructures[] {
   const capitalized = capitalize(table.name);
   const insertParamsName = `Insert${capitalized}Params`;
 
+  const replaceParamsName = `Replace${capitalized}Params`;
+  const replaceObject = new Map<string, WriterFunction>();
+  for (const column of table.columns) {
+    const name = column.isPrimaryKey ? column.name : optionalType(column.name);
+    replaceObject.set(name, (writer) => {
+      writer.write(columnTypes[column.typeAffinity]);
+    });
+  }
+  const columnsVariableName = `${table.name}Columns`;
+
   const deleteObject = new Map<string, WriterFunction>();
   for (const column of table.columns) {
     deleteObject.set(column.name, (writer) => {
@@ -153,6 +163,19 @@ function generateOne(table: Table): StatementStructures[] {
   const deleteParamsName = `Delete${capitalized}Params`;
 
   return [
+    {
+      kind: StructureKind.VariableStatement,
+      isExported: true,
+      declarationKind: VariableDeclarationKind.Const,
+      declarations: [{
+        name: columnsVariableName,
+        initializer: (writer) => {
+          const names = table.columns.map((e) => `"${e.name}"`).join(", ");
+          writer.write(`[${names}]`);
+        },
+      }],
+      leadingTrivia: "\n",
+    },
     {
       kind: StructureKind.TypeAlias,
       isExported: true,
@@ -172,12 +195,42 @@ function generateOne(table: Table): StatementStructures[] {
         { name: "...paramsList", type: `${insertParamsName}[]` },
       ],
       statements: (writer) => {
-        writer.writeLine(`const [values, params] = asIntoValues(paramsList)`);
+        writer.writeLine(
+          `const [values, params] = asIntoValues(paramsList, ${columnsVariableName})`,
+        );
         const intoColumns = columnsExceptAutoIncrement.map((column) => {
           return column.name;
         }).join(`, `);
         writer.writeLine(
           `const query = \`INSERT INTO ${table.name} (${intoColumns}) VALUES \${values}\``,
+        );
+        writer.writeLine(`db.query(query, params)`);
+      },
+    },
+    {
+      kind: StructureKind.TypeAlias,
+      isExported: true,
+      name: replaceParamsName,
+      type: typeParamed(
+        "Readonly",
+        Writers.object(Object.fromEntries(replaceObject)),
+      ),
+      leadingTrivia: "\n",
+    },
+    {
+      kind: StructureKind.Function,
+      isExported: true,
+      name: `replace${capitalized}`,
+      parameters: [
+        { name: "db", type: "DB" },
+        { name: "...paramsList", type: `${replaceParamsName}[]` },
+      ],
+      statements: (writer) => {
+        writer.writeLine(
+          `const [columns, values, params] = asIntoAndValues(paramsList, ${columnsVariableName})`,
+        );
+        writer.writeLine(
+          `const query = \`REPLACE INTO ${table.name} \${columns} VALUES \${values}\``,
         );
         writer.writeLine(`db.query(query, params)`);
       },
@@ -222,4 +275,10 @@ function typeParamed(
     param(writer);
     writer.write(">");
   };
+}
+
+function optionalType(
+  name: string,
+): string {
+  return `${name}?`;
 }

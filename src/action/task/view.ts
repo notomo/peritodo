@@ -1,6 +1,7 @@
 import * as typ from "./type.ts";
 import { Table } from "cliffy/table";
 import { format } from "datetime";
+import { edit } from "/lib/editor.ts";
 
 const timeFormat = "yyyy-MM-dd";
 const timeColumn = (at: typ.PeriodicTaskAt) => {
@@ -62,4 +63,24 @@ export async function listDoneTasks(
   }
   const output = table.toString();
   await write(output);
+}
+
+export async function editPeriodicTasks(
+  periodicTasks: typ.PeriodicTask[],
+): Promise<typ.EditedPeriodicTask[] | undefined> {
+  const editableTasks = periodicTasks.map((e) => {
+    return {
+      id: e.id,
+      name: e.name,
+      intervalDay: e.intervalDay,
+    };
+  });
+  const input = new TextEncoder().encode(
+    JSON.stringify(editableTasks, null, 2),
+  );
+  const output = await edit(input);
+  if (!output) {
+    return undefined;
+  }
+  return JSON.parse(output);
 }

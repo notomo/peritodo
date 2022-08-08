@@ -121,3 +121,17 @@ export async function listDoneTasks() {
     teardown();
   }
 }
+
+export async function editPeriodicTasks() {
+  const [datastore, teardown] = await setupDatastore();
+  try {
+    const oldTasks = await impl.fetchPeriodicTasks(datastore);
+    const editedTasks = await view.editPeriodicTasks(oldTasks);
+    if (!editedTasks) {
+      return;
+    }
+    await impl.replacePeriodicTasks(datastore, editedTasks, oldTasks);
+  } finally {
+    teardown();
+  }
+}

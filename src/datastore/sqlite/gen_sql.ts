@@ -1,5 +1,5 @@
 import { DB } from "./db.ts";
-import { asConditionPart, asIntoValues } from "./builder.ts";
+import { asConditionPart, asIntoAndValues, asIntoValues } from "./builder.ts";
 
 export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +83,8 @@ export type AllColumns =
   | "doneTask.periodicTaskId"
   | "doneTask.doneAt";
 
+export const periodicTaskColumns = ["id", "name", "startAt", "intervalDay"];
+
 export type InsertPeriodicTaskParams = Readonly<{
   name: string;
   startAt: string;
@@ -93,9 +95,28 @@ export function insertPeriodicTask(
   db: DB,
   ...paramsList: InsertPeriodicTaskParams[]
 ) {
-  const [values, params] = asIntoValues(paramsList);
+  const [values, params] = asIntoValues(paramsList, periodicTaskColumns);
   const query =
     `INSERT INTO periodicTask (name, startAt, intervalDay) VALUES ${values}`;
+  db.query(query, params);
+}
+
+export type ReplacePeriodicTaskParams = Readonly<{
+  id: number;
+  name?: string;
+  startAt?: string;
+  intervalDay?: number;
+}>;
+
+export function replacePeriodicTask(
+  db: DB,
+  ...paramsList: ReplacePeriodicTaskParams[]
+) {
+  const [columns, values, params] = asIntoAndValues(
+    paramsList,
+    periodicTaskColumns,
+  );
+  const query = `REPLACE INTO periodicTask ${columns} VALUES ${values}`;
   db.query(query, params);
 }
 
@@ -114,6 +135,12 @@ export function deletePeriodicTask(db: DB, params: DeletePeriodicTaskParams) {
   db.query(query, params);
 }
 
+export const periodicTaskStatusChangeColumns = [
+  "periodicTaskId",
+  "changedAt",
+  "status",
+];
+
 export type InsertPeriodicTaskStatusChangeParams = Readonly<{
   periodicTaskId: number;
   changedAt: string;
@@ -124,9 +151,31 @@ export function insertPeriodicTaskStatusChange(
   db: DB,
   ...paramsList: InsertPeriodicTaskStatusChangeParams[]
 ) {
-  const [values, params] = asIntoValues(paramsList);
+  const [values, params] = asIntoValues(
+    paramsList,
+    periodicTaskStatusChangeColumns,
+  );
   const query =
     `INSERT INTO periodicTaskStatusChange (periodicTaskId, changedAt, status) VALUES ${values}`;
+  db.query(query, params);
+}
+
+export type ReplacePeriodicTaskStatusChangeParams = Readonly<{
+  periodicTaskId?: number;
+  changedAt?: string;
+  status?: string;
+}>;
+
+export function replacePeriodicTaskStatusChange(
+  db: DB,
+  ...paramsList: ReplacePeriodicTaskStatusChangeParams[]
+) {
+  const [columns, values, params] = asIntoAndValues(
+    paramsList,
+    periodicTaskStatusChangeColumns,
+  );
+  const query =
+    `REPLACE INTO periodicTaskStatusChange ${columns} VALUES ${values}`;
   db.query(query, params);
 }
 
@@ -147,15 +196,35 @@ export function deletePeriodicTaskStatusChange(
   db.query(query, params);
 }
 
+export const doneTaskColumns = ["id", "periodicTaskId", "doneAt"];
+
 export type InsertDoneTaskParams = Readonly<{
   periodicTaskId: number;
   doneAt: string;
 }>;
 
 export function insertDoneTask(db: DB, ...paramsList: InsertDoneTaskParams[]) {
-  const [values, params] = asIntoValues(paramsList);
+  const [values, params] = asIntoValues(paramsList, doneTaskColumns);
   const query =
     `INSERT INTO doneTask (periodicTaskId, doneAt) VALUES ${values}`;
+  db.query(query, params);
+}
+
+export type ReplaceDoneTaskParams = Readonly<{
+  id: number;
+  periodicTaskId?: number;
+  doneAt?: string;
+}>;
+
+export function replaceDoneTask(
+  db: DB,
+  ...paramsList: ReplaceDoneTaskParams[]
+) {
+  const [columns, values, params] = asIntoAndValues(
+    paramsList,
+    doneTaskColumns,
+  );
+  const query = `REPLACE INTO doneTask ${columns} VALUES ${values}`;
   db.query(query, params);
 }
 
