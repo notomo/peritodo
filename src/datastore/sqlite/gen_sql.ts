@@ -1,5 +1,5 @@
 import { DB } from "./db.ts";
-import { asConditionPart } from "./builder.ts";
+import { asConditionPart, asIntoValues } from "./builder.ts";
 
 export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -89,19 +89,14 @@ export type InsertPeriodicTaskParams = Readonly<{
   intervalDay: number;
 }>;
 
-export function insertPeriodicTask(db: DB, params: InsertPeriodicTaskParams) {
-  db.query(
-    `INSERT INTO periodicTask (
-  name
-  ,startAt
-  ,intervalDay
-) VALUES (
-  :name
-  ,:startAt
-  ,:intervalDay
-)`,
-    params,
-  );
+export function insertPeriodicTask(
+  db: DB,
+  ...paramsList: InsertPeriodicTaskParams[]
+) {
+  const [values, params] = asIntoValues(paramsList);
+  const query =
+    `INSERT INTO periodicTask (name, startAt, intervalDay) VALUES ${values}`;
+  db.query(query, params);
 }
 
 export type DeletePeriodicTaskParams = Partial<
@@ -127,20 +122,12 @@ export type InsertPeriodicTaskStatusChangeParams = Readonly<{
 
 export function insertPeriodicTaskStatusChange(
   db: DB,
-  params: InsertPeriodicTaskStatusChangeParams,
+  ...paramsList: InsertPeriodicTaskStatusChangeParams[]
 ) {
-  db.query(
-    `INSERT INTO periodicTaskStatusChange (
-  periodicTaskId
-  ,changedAt
-  ,status
-) VALUES (
-  :periodicTaskId
-  ,:changedAt
-  ,:status
-)`,
-    params,
-  );
+  const [values, params] = asIntoValues(paramsList);
+  const query =
+    `INSERT INTO periodicTaskStatusChange (periodicTaskId, changedAt, status) VALUES ${values}`;
+  db.query(query, params);
 }
 
 export type DeletePeriodicTaskStatusChangeParams = Partial<
@@ -165,17 +152,11 @@ export type InsertDoneTaskParams = Readonly<{
   doneAt: string;
 }>;
 
-export function insertDoneTask(db: DB, params: InsertDoneTaskParams) {
-  db.query(
-    `INSERT INTO doneTask (
-  periodicTaskId
-  ,doneAt
-) VALUES (
-  :periodicTaskId
-  ,:doneAt
-)`,
-    params,
-  );
+export function insertDoneTask(db: DB, ...paramsList: InsertDoneTaskParams[]) {
+  const [values, params] = asIntoValues(paramsList);
+  const query =
+    `INSERT INTO doneTask (periodicTaskId, doneAt) VALUES ${values}`;
+  db.query(query, params);
 }
 
 export type DeleteDoneTaskParams = Partial<

@@ -7,7 +7,6 @@ import {
   Writers,
 } from "https://deno.land/x/ts_morph@15.1.0/mod.ts";
 import {
-  Column,
   ColumnTypeAffinity,
   Table,
 } from "https://deno.land/x/sqlite_schema@0.0.2/mod.ts";
@@ -63,7 +62,7 @@ function generateForAll(
     },
     {
       kind: StructureKind.ImportDeclaration,
-      namedImports: ["asConditionPart"],
+      namedImports: ["asConditionPart", "asIntoValues"],
       moduleSpecifier: "./builder.ts",
     },
     {
@@ -144,7 +143,6 @@ function generateOne(table: Table): StatementStructures[] {
   }
   const capitalized = capitalize(table.name);
   const insertParamsName = `Insert${capitalized}Params`;
-  const insert = insertQuery(table, columnsExceptAutoIncrement);
 
   const deleteObject = new Map<string, WriterFunction>();
   for (const column of table.columns) {
@@ -171,10 +169,17 @@ function generateOne(table: Table): StatementStructures[] {
       name: `insert${capitalized}`,
       parameters: [
         { name: "db", type: "DB" },
-        { name: "params", type: insertParamsName },
+        { name: "...paramsList", type: `${insertParamsName}[]` },
       ],
       statements: (writer) => {
-        writer.writeLine(`db.query(\`${insert}\`, params)`);
+        writer.writeLine(`const [values, params] = asIntoValues(paramsList)`);
+        const intoColumns = columnsExceptAutoIncrement.map((column) => {
+          return column.name;
+        }).join(`, `);
+        writer.writeLine(
+          `const query = \`INSERT INTO ${table.name} (${intoColumns}) VALUES \${values}\``,
+        );
+        writer.writeLine(`db.query(query, params)`);
       },
     },
     {
@@ -206,22 +211,6 @@ function generateOne(table: Table): StatementStructures[] {
       },
     },
   ];
-}
-
-function insertQuery(table: Table, columns: Column[]) {
-  const indent = "  ";
-  const intoColumns = columns.map((column) => {
-    return column.name;
-  }).join(`\n${indent},`);
-  const valuesColumns = columns.map((column) => {
-    return `:${column.name}`;
-  }).join(`\n${indent},`);
-  const query = `INSERT INTO ${table.name} (
-${indent}${intoColumns}
-) VALUES (
-${indent}${valuesColumns}
-)`;
-  return query;
 }
 
 function typeParamed(
