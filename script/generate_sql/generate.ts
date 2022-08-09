@@ -7,6 +7,7 @@ import {
   Writers,
 } from "https://deno.land/x/ts_morph@15.1.0/mod.ts";
 import {
+  Column,
   ColumnTypeAffinity,
   Table,
 } from "https://deno.land/x/sqlite_schema@0.0.2/mod.ts";
@@ -62,7 +63,7 @@ function generateForAll(
     },
     {
       kind: StructureKind.ImportDeclaration,
-      namedImports: ["asConditionPart", "asIntoValues", "asIntoAndValues"],
+      namedImports: ["asConditionPart", "asIntoValues"],
       moduleSpecifier: "./builder.ts",
     },
     {
@@ -123,45 +124,9 @@ function capitalize(tableName: string): string {
   return tableName[0].toUpperCase() + tableName.slice(1);
 }
 
-const columnTypes: { [K in ColumnTypeAffinity]: string } = {
-  INTEGER: "number",
-  REAL: "number",
-  NUMERIC: "number",
-  TEXT: "string",
-  BLOB: "Uint8Array",
-};
-
 function generateOne(table: Table): StatementStructures[] {
-  const columnsExceptAutoIncrement = table.columns.filter((column) => {
-    return !column.isAutoIncrement;
-  });
-  const insertObject = new Map<string, WriterFunction>();
-  for (const column of columnsExceptAutoIncrement) {
-    insertObject.set(column.name, (writer) => {
-      writer.write(columnTypes[column.typeAffinity]);
-    });
-  }
   const capitalized = capitalize(table.name);
-  const insertParamsName = `Insert${capitalized}Params`;
-
-  const replaceParamsName = `Replace${capitalized}Params`;
-  const replaceObject = new Map<string, WriterFunction>();
-  for (const column of table.columns) {
-    const name = column.isPrimaryKey ? column.name : optionalType(column.name);
-    replaceObject.set(name, (writer) => {
-      writer.write(columnTypes[column.typeAffinity]);
-    });
-  }
   const columnsVariableName = `${table.name}Columns`;
-
-  const deleteObject = new Map<string, WriterFunction>();
-  for (const column of table.columns) {
-    deleteObject.set(column.name, (writer) => {
-      writer.write(columnTypes[column.typeAffinity]);
-    });
-  }
-  const deleteParamsName = `Delete${capitalized}Params`;
-
   return [
     {
       kind: StructureKind.VariableStatement,
@@ -176,13 +141,32 @@ function generateOne(table: Table): StatementStructures[] {
       }],
       leadingTrivia: "\n",
     },
+    ...generateInsert(table, capitalized, columnsVariableName),
+    ...generateReplace(table, capitalized, columnsVariableName),
+    ...generateDelete(table, capitalized),
+  ];
+}
+
+function generateInsert(
+  table: Table,
+  capitalized: string,
+  columnsVariableName: string,
+): StatementStructures[] {
+  const columns = table.columns.filter((column) => {
+    return !column.isAutoIncrement;
+  });
+  const paramsName = `Insert${capitalized}Params`;
+  return [
     {
       kind: StructureKind.TypeAlias,
       isExported: true,
-      name: insertParamsName,
+      name: paramsName,
       type: typeParamed(
         "Readonly",
-        Writers.object(Object.fromEntries(insertObject)),
+        paramsWriter(
+          (column) => column.name,
+          columns,
+        ),
       ),
       leadingTrivia: "\n",
     },
@@ -192,13 +176,13 @@ function generateOne(table: Table): StatementStructures[] {
       name: `insert${capitalized}`,
       parameters: [
         { name: "db", type: "DB" },
-        { name: "...paramsList", type: `${insertParamsName}[]` },
+        { name: "...paramsList", type: `${paramsName}[]` },
       ],
       statements: (writer) => {
         writer.writeLine(
           `const [values, params] = asIntoValues(paramsList, ${columnsVariableName})`,
         );
-        const intoColumns = columnsExceptAutoIncrement.map((column) => {
+        const intoColumns = columns.map((column) => {
           return column.name;
         }).join(`, `);
         writer.writeLine(
@@ -207,13 +191,28 @@ function generateOne(table: Table): StatementStructures[] {
         writer.writeLine(`db.query(query, params)`);
       },
     },
+  ];
+}
+
+function generateReplace(
+  table: Table,
+  capitalized: string,
+  columnsVariableName: string,
+): StatementStructures[] {
+  const columns = table.columns;
+  const paramsName = `Replace${capitalized}Params`;
+  return [
     {
       kind: StructureKind.TypeAlias,
       isExported: true,
-      name: replaceParamsName,
+      name: paramsName,
       type: typeParamed(
         "Readonly",
-        Writers.object(Object.fromEntries(replaceObject)),
+        paramsWriter(
+          (column) =>
+            column.isPrimaryKey ? column.name : optionalType(column.name),
+          columns,
+        ),
       ),
       leadingTrivia: "\n",
     },
@@ -223,27 +222,42 @@ function generateOne(table: Table): StatementStructures[] {
       name: `replace${capitalized}`,
       parameters: [
         { name: "db", type: "DB" },
-        { name: "...paramsList", type: `${replaceParamsName}[]` },
+        { name: "...paramsList", type: `${paramsName}[]` },
       ],
       statements: (writer) => {
         writer.writeLine(
-          `const [columns, values, params] = asIntoAndValues(paramsList, ${columnsVariableName})`,
+          `const [values, params] = asIntoValues(paramsList, ${columnsVariableName})`,
         );
+        const intoColumns = columns.map((column) => {
+          return column.name;
+        }).join(`, `);
         writer.writeLine(
-          `const query = \`REPLACE INTO ${table.name} \${columns} VALUES \${values}\``,
+          `const query = \`REPLACE INTO ${table.name} (${intoColumns}) VALUES \${values}\``,
         );
         writer.writeLine(`db.query(query, params)`);
       },
     },
+  ];
+}
+
+function generateDelete(
+  table: Table,
+  capitalized: string,
+): StatementStructures[] {
+  const paramsName = `Delete${capitalized}Params`;
+  return [
     {
       kind: StructureKind.TypeAlias,
       isExported: true,
-      name: deleteParamsName,
+      name: paramsName,
       type: typeParamed(
         "Partial",
         typeParamed(
           "Readonly",
-          Writers.object(Object.fromEntries(deleteObject)),
+          paramsWriter(
+            (column) => column.name,
+            table.columns,
+          ),
         ),
       ),
     },
@@ -253,7 +267,7 @@ function generateOne(table: Table): StatementStructures[] {
       name: `delete${capitalized}`,
       parameters: [
         { name: "db", type: "DB" },
-        { name: "params", type: deleteParamsName },
+        { name: "params", type: paramsName },
       ],
       statements: (writer) => {
         writer.writeLine(`const condition = asConditionPart(params)`);
@@ -281,4 +295,26 @@ function optionalType(
   name: string,
 ): string {
   return `${name}?`;
+}
+
+const columnTypes: { [K in ColumnTypeAffinity]: string } = {
+  INTEGER: "number",
+  REAL: "number",
+  NUMERIC: "number",
+  TEXT: "string",
+  BLOB: "Uint8Array",
+};
+
+function paramsWriter(
+  toParamKey: (column: Column) => string,
+  columns: Column[],
+): WriterFunction {
+  const map = new Map<string, WriterFunction>();
+  for (const column of columns) {
+    const key = toParamKey(column);
+    map.set(key, (writer) => {
+      writer.write(columnTypes[column.typeAffinity]);
+    });
+  }
+  return Writers.object(Object.fromEntries(map));
 }

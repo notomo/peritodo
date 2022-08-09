@@ -6,22 +6,6 @@ export function asConditionPart(params: Record<string, unknown>) {
 
 type RecordValue = string | number;
 
-export function asIntoAndValues<T = Record<string, RecordValue>>(
-  paramsList: T[],
-  allColumns: string[],
-): [string, string, Record<string, RecordValue>] {
-  const [values, params] = asIntoValues(paramsList, allColumns);
-  const keys = Object.keys(paramsList[0]);
-  const columns = allColumns.filter((e) => {
-    return keys.includes(e);
-  }).join(", ");
-  return [
-    `(${columns})`,
-    values,
-    params,
-  ];
-}
-
 export function asIntoValues<T = Record<string, RecordValue>>(
   paramsList: T[],
   allColumns: string[],

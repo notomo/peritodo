@@ -1,5 +1,5 @@
 import { DB } from "./db.ts";
-import { asConditionPart, asIntoAndValues, asIntoValues } from "./builder.ts";
+import { asConditionPart, asIntoValues } from "./builder.ts";
 
 export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -112,11 +112,9 @@ export function replacePeriodicTask(
   db: DB,
   ...paramsList: ReplacePeriodicTaskParams[]
 ) {
-  const [columns, values, params] = asIntoAndValues(
-    paramsList,
-    periodicTaskColumns,
-  );
-  const query = `REPLACE INTO periodicTask ${columns} VALUES ${values}`;
+  const [values, params] = asIntoValues(paramsList, periodicTaskColumns);
+  const query =
+    `REPLACE INTO periodicTask (id, name, startAt, intervalDay) VALUES ${values}`;
   db.query(query, params);
 }
 
@@ -170,12 +168,12 @@ export function replacePeriodicTaskStatusChange(
   db: DB,
   ...paramsList: ReplacePeriodicTaskStatusChangeParams[]
 ) {
-  const [columns, values, params] = asIntoAndValues(
+  const [values, params] = asIntoValues(
     paramsList,
     periodicTaskStatusChangeColumns,
   );
   const query =
-    `REPLACE INTO periodicTaskStatusChange ${columns} VALUES ${values}`;
+    `REPLACE INTO periodicTaskStatusChange (periodicTaskId, changedAt, status) VALUES ${values}`;
   db.query(query, params);
 }
 
@@ -220,11 +218,9 @@ export function replaceDoneTask(
   db: DB,
   ...paramsList: ReplaceDoneTaskParams[]
 ) {
-  const [columns, values, params] = asIntoAndValues(
-    paramsList,
-    doneTaskColumns,
-  );
-  const query = `REPLACE INTO doneTask ${columns} VALUES ${values}`;
+  const [values, params] = asIntoValues(paramsList, doneTaskColumns);
+  const query =
+    `REPLACE INTO doneTask (id, periodicTaskId, doneAt) VALUES ${values}`;
   db.query(query, params);
 }
 
