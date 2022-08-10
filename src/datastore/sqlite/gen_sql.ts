@@ -103,9 +103,9 @@ export function insertPeriodicTask(
 
 export type ReplacePeriodicTaskParams = Readonly<{
   id: number;
-  name?: string;
-  startAt?: string;
-  intervalDay?: number;
+  name: string;
+  startAt: string;
+  intervalDay: number;
 }>;
 
 export function replacePeriodicTask(
@@ -159,9 +159,9 @@ export function insertPeriodicTaskStatusChange(
 }
 
 export type ReplacePeriodicTaskStatusChangeParams = Readonly<{
-  periodicTaskId?: number;
-  changedAt?: string;
-  status?: string;
+  periodicTaskId: number;
+  changedAt: string;
+  status: string;
 }>;
 
 export function replacePeriodicTaskStatusChange(
@@ -210,8 +210,8 @@ export function insertDoneTask(db: DB, ...paramsList: InsertDoneTaskParams[]) {
 
 export type ReplaceDoneTaskParams = Readonly<{
   id: number;
-  periodicTaskId?: number;
-  doneAt?: string;
+  periodicTaskId: number;
+  doneAt: string;
 }>;
 
 export function replaceDoneTask(

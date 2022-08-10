@@ -120,10 +120,6 @@ function generateForAll(
   ];
 }
 
-function capitalize(tableName: string): string {
-  return tableName[0].toUpperCase() + tableName.slice(1);
-}
-
 function generateOne(table: Table): StatementStructures[] {
   const capitalized = capitalize(table.name);
   const columnsVariableName = `${table.name}Columns`;
@@ -209,8 +205,7 @@ function generateReplace(
       type: typeParamed(
         "Readonly",
         paramsWriter(
-          (column) =>
-            column.isPrimaryKey ? column.name : optionalType(column.name),
+          (column) => column.name,
           columns,
         ),
       ),
@@ -280,6 +275,10 @@ function generateDelete(
   ];
 }
 
+function capitalize(tableName: string): string {
+  return tableName[0].toUpperCase() + tableName.slice(1);
+}
+
 function typeParamed(
   name: string,
   param: WriterFunction,
@@ -289,12 +288,6 @@ function typeParamed(
     param(writer);
     writer.write(">");
   };
-}
-
-function optionalType(
-  name: string,
-): string {
-  return `${name}?`;
 }
 
 const columnTypes: { [K in ColumnTypeAffinity]: string } = {
