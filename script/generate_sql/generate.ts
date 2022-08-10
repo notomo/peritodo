@@ -12,49 +12,25 @@ import {
   Table,
 } from "https://deno.land/x/sqlite_schema@0.0.2/mod.ts";
 
-export function generate(path: string, tables: Table[], sql: string) {
+export async function generate(path: string, tables: Table[], sql: string) {
   const project = new Project();
-  const source = project.createSourceFile(path, undefined, {
+  await project.createSourceFile(path, undefined, {
     overwrite: true,
-  });
-
-  const statements = generateForAll(tables, sql);
-  for (const table of tables) {
-    statements.push(...generateOne(table));
-  }
-  source.set({
-    kind: StructureKind.SourceFile,
-    statements: statements,
-  });
-
-  source.save();
+  })
+    .set({
+      kind: StructureKind.SourceFile,
+      statements: [
+        ...generateForAll(tables, sql),
+        ...tables.flatMap((table) => generateOne(table)),
+      ],
+    })
+    .save();
 }
 
 function generateForAll(
   tables: Table[],
   sql: string,
 ): StatementStructures[] {
-  const tableNames = new Map<string, WriterFunction>();
-  const fullColumnNames = new Map<string, WriterFunction>();
-  const allColumnNames: string[] = [];
-  for (const table of tables) {
-    tableNames.set(table.name, (writer) => {
-      writer.write(`"${table.name}"`);
-    });
-    const columnNames = new Map<string, WriterFunction>();
-    for (const column of table.columns) {
-      const fullName = `"${table.name}.${column.name}"`;
-      columnNames.set(column.name, (writer) => {
-        writer.write(fullName);
-      });
-      allColumnNames.push(fullName);
-    }
-    fullColumnNames.set(
-      table.name,
-      Writers.object(Object.fromEntries(columnNames)),
-    );
-  }
-
   return [
     {
       kind: StructureKind.ImportDeclaration,
@@ -86,7 +62,9 @@ function generateForAll(
       declarations: [{
         name: "tables",
         initializer: (writer) => {
-          Writers.object(Object.fromEntries(tableNames))(writer);
+          objectWriter((table) => [table.name, `"${table.name}"`], tables)(
+            writer,
+          );
           writer.write(" as const");
         },
       }],
@@ -100,7 +78,15 @@ function generateForAll(
       declarations: [{
         name: "columns",
         initializer: (writer) => {
-          Writers.object(Object.fromEntries(fullColumnNames))(writer);
+          objectWriter((table) => {
+            return [
+              table.name,
+              objectWriter(
+                (column) => [column.name, `"${table.name}.${column.name}"`],
+                table.columns,
+              ),
+            ];
+          }, tables)(writer);
           writer.write(" as const");
         },
       }],
@@ -112,7 +98,14 @@ function generateForAll(
       isExported: true,
       name: "AllColumns",
       type: (writer) => {
-        writer.write(allColumnNames.join(" | "));
+        const allColumnNames = tables
+          .flatMap((table) => {
+            return table.columns.map((column) =>
+              `"${table.name}.${column.name}"`
+            );
+          })
+          .join(" | ");
+        writer.write(allColumnNames);
       },
       leadingTrivia: "\n",
       trailingTrivia: "\n",
@@ -143,6 +136,8 @@ function generateOne(table: Table): StatementStructures[] {
   ];
 }
 
+const dbParam = { name: "db", type: "DB" };
+
 function generateInsert(
   table: Table,
   capitalized: string,
@@ -171,7 +166,7 @@ function generateInsert(
       isExported: true,
       name: `insert${capitalized}`,
       parameters: [
-        { name: "db", type: "DB" },
+        dbParam,
         { name: "...paramsList", type: `${paramsName}[]` },
       ],
       statements: (writer) => {
@@ -216,7 +211,7 @@ function generateReplace(
       isExported: true,
       name: `replace${capitalized}`,
       parameters: [
-        { name: "db", type: "DB" },
+        dbParam,
         { name: "...paramsList", type: `${paramsName}[]` },
       ],
       statements: (writer) => {
@@ -239,6 +234,7 @@ function generateDelete(
   table: Table,
   capitalized: string,
 ): StatementStructures[] {
+  const columns = table.columns;
   const paramsName = `Delete${capitalized}Params`;
   return [
     {
@@ -251,7 +247,7 @@ function generateDelete(
           "Readonly",
           paramsWriter(
             (column) => column.name,
-            table.columns,
+            columns,
           ),
         ),
       ),
@@ -261,7 +257,7 @@ function generateDelete(
       isExported: true,
       name: `delete${capitalized}`,
       parameters: [
-        { name: "db", type: "DB" },
+        dbParam,
         { name: "params", type: paramsName },
       ],
       statements: (writer) => {
@@ -302,12 +298,25 @@ function paramsWriter(
   toParamKey: (column: Column) => string,
   columns: Column[],
 ): WriterFunction {
+  return objectWriter((column) => {
+    return [toParamKey(column), columnTypes[column.typeAffinity]];
+  }, columns);
+}
+
+function objectWriter<T>(
+  toParamKeyValue: (e: T) => [string, string | WriterFunction],
+  elements: T[],
+): WriterFunction {
   const map = new Map<string, WriterFunction>();
-  for (const column of columns) {
-    const key = toParamKey(column);
-    map.set(key, (writer) => {
-      writer.write(columnTypes[column.typeAffinity]);
-    });
+  for (const e of elements) {
+    const [key, value] = toParamKeyValue(e);
+    if (typeof value === "string") {
+      map.set(key, (writer) => {
+        writer.write(value);
+      });
+    } else {
+      map.set(key, value);
+    }
   }
   return Writers.object(Object.fromEntries(map));
 }
