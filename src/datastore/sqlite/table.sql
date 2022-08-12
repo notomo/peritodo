@@ -5,11 +5,18 @@ CREATE TABLE IF NOT EXISTS periodicTask (
   intervalDay INTEGER CHECK(intervalDay > 0)
 );
 
+CREATE TABLE IF NOT EXISTS periodicTaskStatus (
+  name TEXT NOT NULL PRIMARY KEY
+);
+INSERT OR IGNORE INTO periodicTaskStatus (name) VALUES ('open');
+INSERT OR IGNORE INTO periodicTaskStatus (name) VALUES ('close');
+
 CREATE TABLE IF NOT EXISTS periodicTaskStatusChange (
   periodicTaskId INTEGER NOT NULL,
   changedAt TEXT NOT NULL,
-  status TEXT NOT NULL CHECK(status IN ('open', 'close')),
-  FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
+  status TEXT NOT NULL,
+  FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE,
+  FOREIGN KEY (status) REFERENCES periodicTaskStatus(name) ON UPDATE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS periodicTaskStatusChange_periodicTaskId ON periodicTaskStatusChange(periodicTaskId);
