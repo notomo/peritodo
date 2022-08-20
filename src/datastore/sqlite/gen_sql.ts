@@ -6,11 +6,11 @@ export const createTable = `CREATE TABLE IF NOT EXISTS periodicTask (
   name TEXT NOT NULL CHECK(name != ''),
   startAt TEXT NOT NULL,
   intervalDay INTEGER CHECK(intervalDay > 0)
-);
+) STRICT;
 
 CREATE TABLE IF NOT EXISTS periodicTaskStatus (
   name TEXT NOT NULL PRIMARY KEY
-);
+) STRICT;
 INSERT OR IGNORE INTO periodicTaskStatus (name) VALUES ('open');
 INSERT OR IGNORE INTO periodicTaskStatus (name) VALUES ('close');
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS periodicTaskStatusChange (
   status TEXT NOT NULL,
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE,
   FOREIGN KEY (status) REFERENCES periodicTaskStatus(name) ON UPDATE CASCADE
-);
+) STRICT;
 
 CREATE INDEX IF NOT EXISTS periodicTaskStatusChange_periodicTaskId ON periodicTaskStatusChange(periodicTaskId);
 
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS doneTask (
   periodicTaskId INTEGER NOT NULL,
   doneAt TEXT NOT NULL,
   FOREIGN KEY (periodicTaskId) REFERENCES periodicTask(id) ON DELETE CASCADE
-);
+) STRICT;
 
 CREATE INDEX IF NOT EXISTS doneTask_periodicTaskId ON doneTask(periodicTaskId);
 `;
