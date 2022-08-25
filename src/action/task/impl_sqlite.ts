@@ -26,9 +26,7 @@ export function persistPeriodicTask(
 
       resolve({
         id: periodicTaskId,
-        name: task.name,
-        startAt: task.startAt,
-        intervalDay: task.intervalDay,
+        ...task,
       });
     });
   });

@@ -21,7 +21,7 @@ export async function generate(path: string, tables: Table[], sql: string) {
       kind: StructureKind.SourceFile,
       statements: [
         ...generateForAll(tables, sql),
-        ...tables.flatMap((table) => generateOne(table)),
+        ...tables.flatMap((table) => generateForOne(table)),
       ],
     })
     .save();
@@ -113,7 +113,7 @@ function generateForAll(
   ];
 }
 
-function generateOne(table: Table): StatementStructures[] {
+function generateForOne(table: Table): StatementStructures[] {
   const capitalized = capitalize(table.name);
   const columnsVariableName = `${table.name}Columns`;
   return [
