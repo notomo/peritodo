@@ -1,4 +1,4 @@
-import { Command } from "cliffy/command";
+import { Command, EnumType } from "cliffy/command";
 import * as taskActions from "./action/task/mod.ts";
 import * as dataActions from "./action/data/mod.ts";
 
@@ -16,6 +16,10 @@ async function main() {
         })
         .action(taskActions.addPeriodicTask)
         .command("list")
+        .type("outputter-type", new EnumType(["table", "json"]))
+        .option("--outputter=<outputter:outputter-type>", "outputter type", {
+          default: "table" as const,
+        })
         .action(taskActions.listPeriodicTasks)
         .command("done")
         .arguments("<id:number>")
@@ -36,6 +40,10 @@ async function main() {
       "done_task",
       new Command()
         .command("list")
+        .type("outputter-type", new EnumType(["table", "json"]))
+        .option("--outputter=<outputter:outputter-type>", "outputter type", {
+          default: "table" as const,
+        })
         .action(taskActions.listDoneTasks)
         .command("undone")
         .arguments("<id:number>")

@@ -97,26 +97,34 @@ export async function undone(_options: void, id: typ.DoneTaskId) {
   }
 }
 
-export async function listPeriodicTasks() {
+export async function listPeriodicTasks(params: {
+  outputter: view.OutputterType;
+}) {
   const write = newTextWriter(Deno.stdout);
   const now = new Date();
 
   const [datastore, teardown] = await setupDatastore();
   try {
     const tasks = await impl.fetchPeriodicTasks(datastore);
-    await view.listPeriodicTasks(tasks, write, now);
+    const views = view.periodicTaskViews(tasks, now);
+    const output = view.renderPeriodicTasks[params.outputter](views);
+    await write(output);
   } finally {
     teardown();
   }
 }
 
-export async function listDoneTasks() {
+export async function listDoneTasks(params: {
+  outputter: view.OutputterType;
+}) {
   const write = newTextWriter(Deno.stdout);
 
   const [datastore, teardown] = await setupDatastore();
   try {
     const doneTasks = await impl.fetchDoneTasks(datastore);
-    await view.listDoneTasks(doneTasks, write);
+    const views = view.doneTaskViews(doneTasks);
+    const output = view.renderDoneTasks[params.outputter](views);
+    await write(output);
   } finally {
     teardown();
   }

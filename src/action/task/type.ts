@@ -95,3 +95,19 @@ export type PeriodicTaskClosedChange = Readonly<{
   at: Date;
   status: PeriodicTaskStatus;
 }>;
+
+export type PeriodicTaskView = Readonly<{
+  id: number;
+  name: string;
+  startAt: string;
+  nextAt: string;
+  intervalDay: number;
+  recentDoneAt: string;
+}>;
+
+export type DoneTaskView = Readonly<{
+  id: number;
+  periodicTaskId: number;
+  doneAt: string;
+  name: string;
+}>;
